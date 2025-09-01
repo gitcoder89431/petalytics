@@ -14,7 +14,7 @@ export const storage = {
 	// Get item from localStorage
 	get<T>(key: string, defaultValue?: T): T | null {
 		if (!browser) return defaultValue || null;
-		
+
 		try {
 			const item = localStorage.getItem(key);
 			return item ? JSON.parse(item) : defaultValue || null;
@@ -27,7 +27,7 @@ export const storage = {
 	// Set item in localStorage
 	set<T>(key: string, value: T): boolean {
 		if (!browser) return false;
-		
+
 		try {
 			localStorage.setItem(key, JSON.stringify(value));
 			return true;
@@ -40,7 +40,7 @@ export const storage = {
 	// Remove item from localStorage
 	remove(key: string): boolean {
 		if (!browser) return false;
-		
+
 		try {
 			localStorage.removeItem(key);
 			return true;
@@ -53,7 +53,7 @@ export const storage = {
 	// Clear all localStorage
 	clear(): boolean {
 		if (!browser) return false;
-		
+
 		try {
 			localStorage.clear();
 			return true;
@@ -73,7 +73,7 @@ export const storage = {
 	keys(): string[] {
 		if (!browser) return [];
 		return Object.keys(localStorage);
-	}
+	},
 };
 
 // Specific storage helpers for the app
@@ -82,38 +82,38 @@ export const appStorage = {
 	savePets(pets: any[]) {
 		return storage.set('petalytics_pets', pets);
 	},
-	
+
 	loadPets() {
 		return storage.get('petalytics_pets', []);
 	},
-	
+
 	// Guardian data
 	saveGuardian(guardian: any) {
 		return storage.set('petalytics_guardian', guardian);
 	},
-	
+
 	loadGuardian() {
 		return storage.get('petalytics_guardian', null);
 	},
-	
+
 	// Theme preference
 	saveTheme(theme: string) {
 		return storage.set('petalytics_theme', theme);
 	},
-	
+
 	loadTheme() {
 		return storage.get('petalytics_theme', 'auto');
 	},
-	
+
 	// Journal entries
 	saveJournalEntries(entries: any[]) {
 		return storage.set('petalytics_journal_entries', entries);
 	},
-	
+
 	loadJournalEntries() {
 		return storage.get('petalytics_journal_entries', []);
 	},
-	
+
 	// Selected pet
 	saveSelectedPet(petId: string | null) {
 		if (petId) {
@@ -122,8 +122,8 @@ export const appStorage = {
 			return storage.remove('petalytics_selected_pet');
 		}
 	},
-	
+
 	loadSelectedPet() {
 		return storage.get('petalytics_selected_pet', null);
-	}
+	},
 };

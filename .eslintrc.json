@@ -1,0 +1,26 @@
+{
+	"root": true,
+	"extends": ["eslint:recommended", "prettier"],
+	"parserOptions": {
+		"sourceType": "module",
+		"ecmaVersion": 2020
+	},
+	"env": {
+		"browser": true,
+		"es2017": true,
+		"node": true
+	},
+	"overrides": [
+		{
+			"files": ["*.svelte"],
+			"parser": "svelte-eslint-parser",
+			"extends": ["plugin:svelte/recommended"],
+			"parserOptions": {
+				"parser": "@typescript-eslint/parser"
+			}
+		}
+	],
+	"rules": {
+		"no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+	}
+}

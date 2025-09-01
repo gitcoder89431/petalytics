@@ -16,28 +16,28 @@
 		shadow = 'md',
 		border = true,
 		class: className = '',
-		children
+		children,
 	}: Props = $props();
 
 	const paddingClasses = {
 		none: '',
 		sm: 'p-3',
 		md: 'p-6',
-		lg: 'p-8'
+		lg: 'p-8',
 	};
 
 	const shadowClasses = {
 		none: '',
 		sm: 'shadow-sm',
 		md: 'shadow-md',
-		lg: 'shadow-lg'
+		lg: 'shadow-lg',
 	};
 
 	const borderClass = border ? 'border' : '';
 	const baseClasses = 'rounded-lg';
 </script>
 
-<div 
+<div
 	class="{baseClasses} {paddingClasses[padding]} {shadowClasses[shadow]} {borderClass} {className}"
 	style="background: var(--petalytics-surface); border-color: var(--petalytics-border);"
 >
@@ -55,6 +55,6 @@
 			{/if}
 		</div>
 	{/if}
-	
+
 	{@render children?.()}
 </div>

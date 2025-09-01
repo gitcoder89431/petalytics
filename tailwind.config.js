@@ -8,9 +8,9 @@ export default {
 			},
 			fontFamily: {
 				mono: ['JetBrains Mono', 'monospace'],
-				sans: ['Inter', 'sans-serif']
-			}
-		}
+				sans: ['Inter', 'sans-serif'],
+			},
+		},
 	},
-	plugins: []
+	plugins: [],
 };
