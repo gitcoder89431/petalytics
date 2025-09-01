@@ -53,7 +53,10 @@
 					Create your first pet profile and begin your intelligent journaling journey.
 				</p>
 				<div class="space-y-3">
-					<Button variant="primary" size="lg" class="w-full">
+					<Button variant="primary" size="lg" class="w-full" onclick={() => window.location.href = '/dashboard'}>
+						Open Dashboard
+					</Button>
+					<Button variant="secondary" size="lg" class="w-full">
 						Add Your First Pet
 					</Button>
 					<Button variant="secondary" size="lg" class="w-full">
