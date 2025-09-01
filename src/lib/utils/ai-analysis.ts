@@ -15,7 +15,7 @@ export class AIAnalyzer {
 	private baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
 	private model: string;
 
-	constructor(apiKey: string, model: string = 'anthropic/claude-3.5-sonnet') {
+	constructor(apiKey: string, model: string = 'openai/gpt-oss-20b:free') {
 		this.apiKey = apiKey;
 		this.model = model;
 	}
@@ -142,4 +142,26 @@ Consider breed-specific traits, age-related needs, and behavioral patterns. Keep
 			return false;
 		}
 	}
+}
+
+// Fetch available models from OpenRouter API
+export async function fetchOpenRouterModels(apiKey: string, onlyFree: boolean = true): Promise<string[]> {
+	const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
+	const resp = await fetch('https://openrouter.ai/api/v1/models', {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${apiKey}`,
+			'Content-Type': 'application/json',
+			...(referer ? { 'HTTP-Referer': referer } : {}),
+			'X-Title': 'Petalytics',
+		},
+	});
+	if (!resp.ok) {
+		throw new Error(`Failed to list models: ${resp.status}`);
+	}
+	const data = await resp.json();
+	const ids: string[] = (data?.data || []).map((m: any) => m?.id).filter(Boolean);
+	const filtered = onlyFree ? ids.filter((id) => /:free$/i.test(id)) : ids;
+	// Deduplicate and sort for stability
+	return Array.from(new Set(filtered)).sort((a, b) => a.localeCompare(b));
 }

@@ -5,6 +5,7 @@
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
 	import { loadThemePreset, themePresets } from '$lib/stores/theme.js';
 	import { uiHelpers } from '$lib/stores/ui';
+	import { fetchOpenRouterModels } from '$lib/utils/ai-analysis.js';
 
 	let apiKeyInput = '';
 	let guardianName = '';
@@ -23,20 +24,21 @@
 
 	const displayKey = (k: keyof typeof themePresets) => (k === 'tokyoNight' ? 'tokyo-night' : k);
     
-	// OpenRouter model selection
-	const models = [
-		'anthropic/claude-3.5-sonnet',
-		'openai/gpt-4o-mini',
-		'google/gemini-1.5-pro',
-		'mistralai/mixtral-8x7b-instruct',
-	] as const;
+	// OpenRouter model selection (dynamic; fallback list shown until fetched)
+	let modelList: string[] = [
+		'openai/gpt-oss-20b:free',
+		'mistralai/mixtral-8x7b-instruct:free',
+		'google/gemma-2-9b-it:free',
+		'openchat/openchat-7b:free',
+	];
 	let currentModelIndex = 0;
+	let modelsLoading = false;
 
 	function loadModelFromStorage() {
 		const saved = guardianHelpers.load();
 		const savedModel = saved?.model as string | undefined;
 		if (savedModel) {
-			const idx = models.indexOf(savedModel as any);
+			const idx = modelList.indexOf(savedModel);
 			currentModelIndex = idx >= 0 ? idx : 0;
 		} else {
 			currentModelIndex = 0;
@@ -44,7 +46,7 @@
 	}
 
 	function displayModel() {
-		return models[currentModelIndex] || models[0];
+		return modelList[currentModelIndex] || modelList[0];
 	}
 
 	function persistModel() {
@@ -53,11 +55,34 @@
 
 	function cycleModel(dir: 'prev' | 'next') {
 		if (dir === 'next') {
-			currentModelIndex = (currentModelIndex + 1) % models.length;
+			currentModelIndex = modelList.length ? (currentModelIndex + 1) % modelList.length : 0;
 		} else {
-			currentModelIndex = (currentModelIndex - 1 + models.length) % models.length;
+			currentModelIndex = modelList.length ? (currentModelIndex - 1 + modelList.length) % modelList.length : 0;
 		}
 		persistModel();
+	}
+
+	async function loadModels() {
+		if (!apiKeyInput) return;
+		modelsLoading = true;
+		try {
+			const list = await fetchOpenRouterModels(apiKeyInput, true);
+			if (Array.isArray(list) && list.length) {
+				modelList = list;
+				// Re-align index to saved model if present
+				const savedModel = guardianHelpers.load()?.model as string | undefined;
+				if (savedModel) {
+					const idx = modelList.indexOf(savedModel);
+					currentModelIndex = idx >= 0 ? idx : 0;
+				} else {
+					currentModelIndex = 0;
+				}
+			}
+		} catch (e) {
+			// Ignore; keep fallback list
+		} finally {
+			modelsLoading = false;
+		}
 	}
 
 		onMount(() => {
@@ -76,6 +101,8 @@
 
 	// Get model selection from guardian storage
 	loadModelFromStorage();
+	// Fetch model list from OpenRouter if API key is present
+	loadModels();
 	});
 
 	function toggleTheme(direction: 'prev' | 'next') {
@@ -233,10 +260,11 @@
 		<!-- Model selection (OpenRouter) -->
 		<div class="cli-row px-2 py-1">
 			<span class="label" style="color: var(--petalytics-foam);">model</span>
-			<span class="value" style="color: var(--petalytics-text);">{displayModel()}</span>
+			<span class="value" style="color: var(--petalytics-text);">{displayModel()} {#if modelsLoading}(loading...){/if}</span>
 			<div class="ml-2 flex items-center space-x-1">
 				<button type="button" class="arrow-btn" onclick={() => cycleModel('prev')} aria-label="Previous model">&lt;</button>
 				<button type="button" class="arrow-btn" onclick={() => cycleModel('next')} aria-label="Next model">&gt;</button>
+				<button type="button" class="arrow-btn" onclick={loadModels} aria-label="Refresh models">↻</button>
 			</div>
 		</div>
 

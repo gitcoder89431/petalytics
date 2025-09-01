@@ -7,7 +7,7 @@ const STORAGE_KEY = 'petalytics-guardian';
 const defaultGuardian = {
 	name: '',
 	apiKey: '',
-	model: 'anthropic/claude-3.5-sonnet',
+	model: 'openai/gpt-oss-20b:free',
 	preferences: {
 		dailyReminders: false,
 		aiInsights: true,

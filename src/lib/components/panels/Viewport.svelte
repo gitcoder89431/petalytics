@@ -8,13 +8,14 @@
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
 	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
+	import type { RightPanelView } from '$lib/stores/ui';
 	import type { PetPanelData } from '$lib/types/Pet';
 	import type { JournalEntry } from '$lib/types/JournalEntry';
 
 	let selectedPet: PetPanelData | null = null;
 	let selectedPetId: string | null = null;
 	let pets: PetPanelData[] = [];
-	let currentView: 'dashboard' | 'journal' | 'history' | 'memories' | 'confirmArchive' = 'dashboard';
+	let currentView: RightPanelView = 'dashboard';
 	let journalInput = '';
 	let selectedMood = '';
 	let selectedActivity = '';
