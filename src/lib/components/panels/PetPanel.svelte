@@ -84,8 +84,8 @@
 		breed: '',
 		age: '',
 		ageUnit: 'years',
-		gender: 'unknown',
-		size: 'medium',
+		gender: '',
+		size: '',
 		profileImageUrl: '',
 	};
 
@@ -133,8 +133,8 @@
 			breed: '',
 			age: '',
 			ageUnit: 'years',
-			gender: 'unknown',
-			size: 'medium',
+			gender: '',
+			size: '',
 			profileImageUrl: '',
 		};
 		formErrors = {};
@@ -191,11 +191,26 @@
 			formErrors.age = 'Please enter a valid age';
 		}
 
-		if (!newPet.gender) {
-			formErrors.gender = 'Please select gender';
-		}
+		// gender optional; defaults to 'unknown' if left blank
 
 		return Object.keys(formErrors).length === 0;
+	}
+
+	function normalizeGender(g: string): 'male' | 'female' | 'unknown' {
+		const v = norm(g);
+		if (v.startsWith('m')) return 'male';
+		if (v.startsWith('f')) return 'female';
+		return 'unknown';
+	}
+
+	function normalizeSize(s: string): 'tiny' | 'small' | 'medium' | 'large' | 'extra_large' {
+		const v = norm(s);
+		if (v.startsWith('ti')) return 'tiny';
+		if (v.startsWith('sm')) return 'small';
+		if (v.startsWith('l') && !v.startsWith('la')) return 'large';
+		if (v.startsWith('la')) return 'large';
+		if (v.startsWith('ex') || v.startsWith('xl') || v.includes('extra')) return 'extra_large';
+		return 'medium';
 	}
 
 	async function createPet() {
@@ -208,8 +223,8 @@
 			breed: newPet.breed.trim(),
 			age: parseInt(newPet.age),
 			ageUnit: normalizeAgeUnit(newPet.ageUnit),
-			gender: (newPet.gender as 'male'|'female'|'unknown'),
-			size: newPet.size as 'tiny'|'small'|'medium'|'large'|'extra_large',
+			gender: normalizeGender(newPet.gender),
+			size: normalizeSize(newPet.size),
 			profileImageUrl: newPet.profileImageUrl || '/images/default-pet.png',
 			createdAt: new Date().toISOString(),
 			journalEntries: [],

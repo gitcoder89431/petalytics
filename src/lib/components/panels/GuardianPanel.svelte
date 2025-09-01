@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { ChevronLeft, ChevronRight, User, Key, Settings, CheckCircle, AlertCircle, Terminal } from 'lucide-svelte';
 	import { guardianHelpers } from '$lib/stores/guardian.js';
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
@@ -8,6 +8,8 @@
 	import { fetchOpenRouterModels } from '$lib/utils/ai-analysis.js';
 
 	let apiKeyInput = '';
+	let prevApiKey = '';
+	let apiKeyEl: HTMLInputElement | null = null;
 	let guardianName = '';
 	// Preferences trimmed to real features; remove unused reminders/notifications.
 	let preferences: { aiInsights: boolean } = {
@@ -123,12 +125,27 @@
 	}
 
 	function startEdit(field: string) {
-		editingField = field;
+		if (field === 'apiKey') {
+			// Prepare for paste-first UX: clear input and focus the field
+			prevApiKey = apiKeyInput;
+			editingField = field;
+			apiKeyInput = '';
+			// Focus after DOM updates
+			tick().then(() => {
+				apiKeyEl?.focus();
+			});
+		} else {
+			editingField = field;
+		}
 	}
 
 	function stopEdit() {
 		const field = editingField;
 		editingField = null;
+		// For apiKey, don't overwrite with empty; restore previous if nothing pasted
+		if (field === 'apiKey' && !apiKeyInput.trim()) {
+			apiKeyInput = prevApiKey;
+		}
 		saveGuardianInfo();
 		if (field === 'apiKey') {
 			validateApiKey();
@@ -194,6 +211,14 @@
 			action();
 		}
 	}
+	function abbreviateKey(key: string): string {
+		const trimmed = (key || '').trim();
+		if (!trimmed) return 'Not set';
+		if (trimmed.length <= 16) return trimmed;
+		const prefix = trimmed.slice(0, 12);
+		const suffix = trimmed.slice(-3);
+		return `${prefix}...${suffix}`;
+	}
 </script>
 
 <div class="guardian-panel h-full" style="background: var(--petalytics-bg);">
@@ -232,16 +257,21 @@
 			<span class="value" style="color: var(--petalytics-text);">
 				{#if editingField === 'apiKey'}
 					<input
-						type="password"
+						bind:this={apiKeyEl}
+						type="text"
 						bind:value={apiKeyInput}
 						onblur={stopEdit}
 						onkeydown={(e) => handleKeydown(e, 'apiKey')}
 						class="bg-transparent border-none outline-none w-full text-right input-inline"
 						style="color: var(--petalytics-text);"
 						placeholder="sk-or-..."
+						inputmode="text"
+						autocapitalize="off"
+						autocorrect="off"
+						spellcheck={false}
 					/>
 				{:else}
-					{apiKeyInput ? `${apiKeyInput.slice(0, 8)}****` : 'Not set'}
+					{abbreviateKey(apiKeyInput)}
 				{/if}
 			</span>
 			<span class="ml-2">
@@ -322,8 +352,7 @@
 	border-color: var(--petalytics-accent);
 	box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 40%, transparent);
 }
-.cli-row[aria-pressed="true"],
-.cli-row[aria-expanded="true"] {
+.cli-row[aria-pressed="true"] {
 	background: var(--petalytics-highlight-high);
 	border-color: var(--petalytics-accent);
 }
