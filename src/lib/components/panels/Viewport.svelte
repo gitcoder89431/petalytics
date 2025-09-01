@@ -185,6 +185,33 @@
 								Back to Dashboard
 							</button>
 						</div>
+					{:else if selectedPet}
+						<div class="flex space-x-2">
+							<button
+								class="nav-button px-3 py-1 rounded-md text-sm"
+								data-active={currentView === 'dashboard'}
+								disabled={!selectedPet || isArchived(selectedPet)}
+								on:click={() => uiHelpers.setView('dashboard')}
+							>
+								Dashboard
+							</button>
+							<button
+								class="nav-button px-3 py-1 rounded-md text-sm"
+								data-active={currentView === 'journal'}
+								disabled={!selectedPet || isArchived(selectedPet)}
+								on:click={() => uiHelpers.setView('journal')}
+							>
+								New Entry
+							</button>
+							<button
+								class="nav-button px-3 py-1 rounded-md text-sm"
+								data-active={currentView === 'history'}
+								disabled={!selectedPet || isArchived(selectedPet)}
+								on:click={() => uiHelpers.setView('history')}
+							>
+								History
+							</button>
+						</div>
 					{/if}
 				</div>
 			</div>
@@ -447,7 +474,7 @@
 								<!-- Actions -->
 								<div class="flex justify-end space-x-3">
 									<button
-										on:click={() => (currentView = 'dashboard')}
+										on:click={() => uiHelpers.setView('dashboard')}
 										class="button-secondary"
 										disabled={isSubmitting}
 									>
@@ -483,7 +510,7 @@
 							<div class="empty-state text-center py-12">
 								<Calendar size={48} style="color: var(--petalytics-subtle);" class="mx-auto mb-4" />
 								<p class="text-lg mb-2" style="color: var(--petalytics-text);">No entries yet</p>
-								<button on:click={() => (currentView = 'journal')} class="button">
+								<button on:click={() => uiHelpers.setView('journal')} class="button">
 									Write First Entry
 								</button>
 							</div>
@@ -547,5 +574,15 @@
 	.nav-button:hover {
 		opacity: 0.8;
 		background: var(--petalytics-highlight-low);
+	}
+
+	.nav-button[data-active="true"] {
+		background: var(--petalytics-highlight-med);
+		border: 1px solid var(--petalytics-accent);
+	}
+
+	.nav-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 </style>
