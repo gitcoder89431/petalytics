@@ -4,6 +4,7 @@
 	import { ChevronLeft, ChevronRight, User, Key, Settings, CheckCircle, AlertCircle, Terminal } from 'lucide-svelte';
 	import { guardianHelpers } from '$lib/stores/guardian.js';
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
+	import { loadThemePreset, themePresets } from '$lib/stores/theme.js';
 
 	let apiKeyInput = '';
 	let guardianName = '';
@@ -18,11 +19,13 @@
 	
 	// CLI-style editing states
 	let editingField: string | null = null;
-	let themes = ['everforest', 'gruvbox', 'tokyo-night', 'nord'];
-	let currentTheme = 'everforest';
+	const themeKeys = Object.keys(themePresets) as Array<keyof typeof themePresets>;
+	let currentThemeKey: keyof typeof themePresets = 'everforest';
 	let themeIndex = 0;
 
-	onMount(() => {
+	const displayKey = (k: keyof typeof themePresets) => (k === 'tokyoNight' ? 'tokyo-night' : k);
+
+		onMount(() => {
 		// Load saved guardian data
 		const saved = guardianHelpers.load();
 		if (saved) {
@@ -31,23 +34,21 @@
 			preferences = { ...preferences, ...saved.preferences };
 		}
 		
-		// Get current theme from document
-		const savedTheme = localStorage.getItem('petalytics-theme') || 'everforest';
-		currentTheme = savedTheme;
-		themeIndex = themes.indexOf(savedTheme);
+		// Get current theme from localStorage
+		const savedTheme = (localStorage.getItem('petalytics-theme') as keyof typeof themePresets) || 'everforest';
+		currentThemeKey = themeKeys.includes(savedTheme) ? savedTheme : 'everforest';
+		themeIndex = themeKeys.indexOf(currentThemeKey);
 	});
 
 	function toggleTheme(direction: 'prev' | 'next') {
 		if (direction === 'next') {
-			themeIndex = (themeIndex + 1) % themes.length;
+			themeIndex = (themeIndex + 1) % themeKeys.length;
 		} else {
-			themeIndex = (themeIndex - 1 + themes.length) % themes.length;
+			themeIndex = (themeIndex - 1 + themeKeys.length) % themeKeys.length;
 		}
-		currentTheme = themes[themeIndex];
-		
-		// Apply theme
-		document.documentElement.className = currentTheme;
-		localStorage.setItem('petalytics-theme', currentTheme);
+		currentThemeKey = themeKeys[themeIndex];
+		// Apply via store (persists to localStorage and updates CSS vars)
+		loadThemePreset(currentThemeKey);
 	}
 
 	function togglePreference(key: keyof typeof preferences) {
@@ -197,7 +198,7 @@
 		<div class="cli-row px-2 py-1">
 			<span class="label" style="color: var(--petalytics-foam);">theme</span>
 			<span class="value" style="color: var(--petalytics-text);">
-				{currentTheme}
+				{displayKey(currentThemeKey)}
 			</span>
 			<div class="ml-2 flex items-center space-x-1">
 				<button type="button" class="arrow-btn" onclick={() => toggleTheme('prev')} aria-label="Previous theme">&lt;</button>
