@@ -1,15 +1,5 @@
 <script lang="ts">
-	interface Props {
-		variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-		size?: 'sm' | 'md' | 'lg';
-		disabled?: boolean;
-		loading?: boolean;
-		type?: 'button' | 'submit' | 'reset';
-		class?: string;
-		onclick?: () => void;
-		children?: any;
-	}
-
+	/* eslint-disable svelte/valid-compile */
 	let {
 		variant = 'primary',
 		size = 'md',
@@ -21,6 +11,19 @@
 		children,
 		...rest
 	}: Props = $props();
+	/* eslint-enable svelte/valid-compile */
+
+	interface Props {
+		variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+		size?: 'sm' | 'md' | 'lg';
+		disabled?: boolean;
+		loading?: boolean;
+		type?: 'button' | 'submit' | 'reset';
+		class?: string;
+		onclick?: () => void;
+		children?: any;
+		[key: string]: any;
+	}
 
 	const baseClasses =
 		'inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';

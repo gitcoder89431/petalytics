@@ -1,19 +1,5 @@
 <script lang="ts">
-	interface Props {
-		type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';
-		placeholder?: string;
-		value?: string | number;
-		disabled?: boolean;
-		required?: boolean;
-		error?: string;
-		label?: string;
-		id?: string;
-		name?: string;
-		oninput?: (event: Event) => void;
-		onchange?: (event: Event) => void;
-		onblur?: (event: Event) => void;
-	}
-
+	/* eslint-disable svelte/valid-compile */
 	let {
 		type = 'text',
 		placeholder,
@@ -29,6 +15,23 @@
 		onblur,
 		...rest
 	}: Props = $props();
+	/* eslint-enable svelte/valid-compile */
+
+	interface Props {
+		type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';
+		placeholder?: string;
+		value?: string | number;
+		disabled?: boolean;
+		required?: boolean;
+		error?: string;
+		label?: string;
+		id?: string;
+		name?: string;
+		oninput?: (_event: Event) => void;
+		onchange?: (_event: Event) => void;
+		onblur?: (_event: Event) => void;
+		[key: string]: any;
+	}
 
 	const inputId = id || name || Math.random().toString(36).substring(7);
 	const hasError = !!error;

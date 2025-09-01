@@ -2,10 +2,9 @@
 	import { onMount } from 'svelte';
 	import { selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
 	import { aiAnalysisHelpers, isAnalyzing } from '$lib/stores/ai-analysis';
-	import { PenTool, Brain, Calendar, TrendingUp, Heart, Activity } from 'lucide-svelte';
+	import { PenTool, Brain, Calendar, Heart, Activity } from 'lucide-svelte';
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
 
-	let selectedPetId = null;
 	let selectedPet = null;
 	let currentView = 'dashboard'; // dashboard, journal, history
 	let journalInput = '';
@@ -19,7 +18,6 @@
 		selectedPetHelpers.load();
 
 		selectedPetStore.subscribe((petId) => {
-			selectedPetId = petId;
 			selectedPet = petId ? petHelpers.getPet(petId) : null;
 		});
 	});
@@ -266,12 +264,13 @@
 								<div class="grid grid-cols-2 gap-4">
 									<div>
 										<label
+											for="journal-mood"
 											class="block text-sm font-medium mb-2"
 											style="color: var(--petalytics-subtle);"
 										>
 											Mood
 										</label>
-										<select bind:value={selectedMood} class="input w-full">
+										<select id="journal-mood" bind:value={selectedMood} class="input w-full">
 											<option value="">Select mood...</option>
 											<option value="happy">😊 Happy</option>
 											<option value="playful">🎾 Playful</option>
@@ -284,12 +283,17 @@
 
 									<div>
 										<label
+											for="journal-activity"
 											class="block text-sm font-medium mb-2"
 											style="color: var(--petalytics-subtle);"
 										>
 											Activity Level
 										</label>
-										<select bind:value={selectedActivity} class="input w-full">
+										<select
+											id="journal-activity"
+											bind:value={selectedActivity}
+											class="input w-full"
+										>
 											<option value="">Select activity...</option>
 											<option value="low">Low Activity</option>
 											<option value="normal">Normal Activity</option>
@@ -302,12 +306,14 @@
 								<!-- Journal Text -->
 								<div>
 									<label
+										for="journal-text"
 										class="block text-sm font-medium mb-2"
 										style="color: var(--petalytics-subtle);"
 									>
 										What happened today?
 									</label>
 									<textarea
+										id="journal-text"
 										bind:value={journalInput}
 										placeholder="Describe your pet's behavior, health, activities, or anything noteworthy..."
 										class="input w-full h-32 resize-none"

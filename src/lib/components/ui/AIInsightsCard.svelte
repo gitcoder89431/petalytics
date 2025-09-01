@@ -3,7 +3,7 @@
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis';
 
 	export let entryId = '';
-	export let petId = '';
+	export const petId = '';
 	export let compact = false;
 
 	let analysis = null;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Plus, Heart, ArrowLeft, Upload, X } from 'lucide-svelte';
+	import { Plus, Heart, ArrowLeft, Upload } from 'lucide-svelte';
 	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets.js';
 	import { fade } from 'svelte/transition';
 	import type { PetPanelData } from '$lib/types/Pet.js';
@@ -148,7 +148,11 @@
 			<div class="create-form space-y-4" transition:fade={{ duration: 200 }}>
 				<!-- Profile Image Upload -->
 				<div class="section">
-					<label class="block text-sm font-medium mb-2" style="color: var(--petalytics-subtle);">
+					<label
+						for="pet-profile-image"
+						class="block text-sm font-medium mb-2"
+						style="color: var(--petalytics-subtle);"
+					>
 						Profile Photo
 					</label>
 					<div class="flex flex-col items-center space-y-3">
@@ -172,6 +176,7 @@
 							</div>
 						{/if}
 						<input
+							id="pet-profile-image"
 							bind:this={imageInput}
 							type="file"
 							accept="image/*"

@@ -2,6 +2,8 @@
 	import { themePresets, loadThemePreset, currentTheme } from '$lib/stores/theme';
 	import { ChevronDown } from 'lucide-svelte';
 
+	export let id: string | undefined = undefined;
+
 	let isOpen = false;
 
 	function selectTheme(themeKey: keyof typeof themePresets) {
@@ -16,6 +18,7 @@
 
 <div class="theme-selector relative">
 	<button
+		{id}
 		onclick={toggleDropdown}
 		class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-md border transition-colors"
 		style="

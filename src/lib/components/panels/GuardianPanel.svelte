@@ -3,7 +3,7 @@
 	import ThemeSelector from '../ui/ThemeSelector.svelte';
 	import DataManager from '../ui/DataManager.svelte';
 	import { User, Key, Settings, CheckCircle, AlertCircle } from 'lucide-svelte';
-	import { guardianStore, guardianHelpers } from '$lib/stores/guardian.js';
+	import { guardianHelpers } from '$lib/stores/guardian.js';
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
 
 	let apiKeyInput = '';
@@ -88,10 +88,15 @@
 	<div class="panel-content flex-1 p-4 space-y-4 overflow-y-auto">
 		<!-- Guardian Info -->
 		<div class="section">
-			<label class="block text-sm font-medium mb-2" style="color: var(--petalytics-subtle);">
+			<label
+				for="guardian-name"
+				class="block text-sm font-medium mb-2"
+				style="color: var(--petalytics-subtle);"
+			>
 				Your Name
 			</label>
 			<input
+				id="guardian-name"
 				type="text"
 				bind:value={guardianName}
 				on:blur={saveGuardianInfo}
@@ -139,10 +144,14 @@
 
 		<!-- Theme Selection -->
 		<div class="section">
-			<label class="block text-sm font-medium mb-2" style="color: var(--petalytics-subtle);">
+			<label
+				for="theme-selector"
+				class="block text-sm font-medium mb-2"
+				style="color: var(--petalytics-subtle);"
+			>
 				Theme
 			</label>
-			<ThemeSelector />
+			<ThemeSelector id="theme-selector" />
 		</div>
 
 		<!-- Settings -->

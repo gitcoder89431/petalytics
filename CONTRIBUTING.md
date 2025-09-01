@@ -5,12 +5,14 @@ Thank you for your interest in contributing to Petalytics! This guide will help 
 ## Development Setup
 
 1. **Fork and clone the repository**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/petalytics.git
    cd petalytics
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -22,10 +24,10 @@ Thank you for your interest in contributing to Petalytics! This guide will help 
 
 ## Code Style
 
-* **TypeScript** - Use TypeScript for all new code
-* **ESLint** - Follow the configured linting rules
-* **Prettier** - Code formatting is automated
-* **Conventional Commits** - Use conventional commit messages
+- **TypeScript** - Use TypeScript for all new code
+- **ESLint** - Follow the configured linting rules
+- **Prettier** - Code formatting is automated
+- **Conventional Commits** - Use conventional commit messages
 
 ### Example commit messages:
 
@@ -37,9 +39,9 @@ docs: update README with new features
 
 ## Testing
 
-* Write tests for new features
-* Run tests before submitting PRs: `npm test`
-* Ensure type checking passes: `npm run check`
+- Write tests for new features
+- Run tests before submitting PRs: `npm test`
+- Ensure type checking passes: `npm run check`
 
 ## Pull Request Process
 
@@ -51,12 +53,12 @@ docs: update README with new features
 
 ## Areas for Contribution
 
-* **AI Prompts** - Improve breed-specific analysis
-* **Themes** - Add new color schemes
-* **Mobile UX** - Enhance mobile experience
-* **Accessibility** - Improve screen reader support
-* **Testing** - Add more comprehensive tests
-* **Documentation** - Improve guides and examples
+- **AI Prompts** - Improve breed-specific analysis
+- **Themes** - Add new color schemes
+- **Mobile UX** - Enhance mobile experience
+- **Accessibility** - Improve screen reader support
+- **Testing** - Add more comprehensive tests
+- **Documentation** - Improve guides and examples
 
 ## Questions?
 

@@ -5,24 +5,26 @@
 Petalytics integrates directly with OpenRouter API for AI-powered pet insights.
 
 ### Authentication
+
 Users provide their own OpenRouter API key through the Guardian Panel.
 
 ### Analysis Request Format
+
 ```typescript
 interface AnalysisRequest {
-  pet: {
-    name: string;
-    breed: string;
-    age: number;
-    gender: 'male' | 'female';
-  };
-  entry: {
-    content: string;
-    date: string;
-    mood?: string;
-    activityLevel?: string;
-  };
-  recentHistory: JournalEntry[];
+	pet: {
+		name: string;
+		breed: string;
+		age: number;
+		gender: 'male' | 'female';
+	};
+	entry: {
+		content: string;
+		date: string;
+		mood?: string;
+		activityLevel?: string;
+	};
+	recentHistory: JournalEntry[];
 }
 ```
 
@@ -30,12 +32,12 @@ interface AnalysisRequest {
 
 ```typescript
 interface AnalysisResult {
-  summary: string;
-  moodTrend: 'improving' | 'stable' | 'concerning';
-  activityLevel: 'low' | 'normal' | 'high';
-  healthConcerns: string[];
-  recommendations: string[];
-  nextCheckupSuggestion?: string;
+	summary: string;
+	moodTrend: 'improving' | 'stable' | 'concerning';
+	activityLevel: 'low' | 'normal' | 'high';
+	healthConcerns: string[];
+	recommendations: string[];
+	nextCheckupSuggestion?: string;
 }
 ```
 
@@ -63,10 +65,10 @@ Each line contains a JSON object:
 
 ### Import Validation
 
-* File must have `.jsonl` extension
-* Version compatibility checking
-* Data structure validation
-* Duplicate handling
+- File must have `.jsonl` extension
+- Version compatibility checking
+- Data structure validation
+- Duplicate handling
 
 ## LocalStorage Schema
 
@@ -88,10 +90,13 @@ localStorage.setItem('petalytics-pets', JSON.stringify([
 ### Guardian Data
 
 ```javascript
-localStorage.setItem('petalytics-guardian', JSON.stringify({
-  name: string,
-  apiKey: string,
-  preferences: object,
-  apiKeyValid: boolean
-}));
+localStorage.setItem(
+	'petalytics-guardian',
+	JSON.stringify({
+		name: string,
+		apiKey: string,
+		preferences: object,
+		apiKeyValid: boolean,
+	})
+);
 ```
