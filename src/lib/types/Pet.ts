@@ -30,6 +30,7 @@ export interface PetPanelData {
 	gender: 'male' | 'female' | 'unknown';
 	size?: 'tiny' | 'small' | 'medium' | 'large' | 'extra_large';
 	profileImageUrl?: string;
+	archived?: boolean;
 	createdAt: string;
 	journalEntries: PetJournalEntry[];
 }

@@ -36,6 +36,25 @@ export const petHelpers = {
 		}
 	},
 
+	// Archive pet
+	archive(petId: string) {
+		petStore.update((pets) => {
+			const updated = pets.map((pet) => (pet.id === petId ? { ...pet, archived: true } : pet));
+			this.save(updated);
+			// Clear selection if archived pet was selected
+			selectedPetStore.update((selectedId) => (selectedId === petId ? null : selectedId));
+			return updated;
+		});
+	},
+
+	unarchive(petId: string) {
+		petStore.update((pets) => {
+			const updated = pets.map((pet) => (pet.id === petId ? { ...pet, archived: false } : pet));
+			this.save(updated);
+			return updated;
+		});
+	},
+
 	// Save pets to localStorage
 	save(pets: PetPanelData[]) {
 		try {

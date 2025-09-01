@@ -5,6 +5,9 @@
 	import type { PetPanelData } from '$lib/types/Pet.js';
 
 	let pets: PetPanelData[] = [];
+	// Derived lists
+	$: activePets = pets.filter((p) => !p.archived);
+	$: archivedPets = pets.filter((p) => p.archived);
 	let selectedPetId: string | null = null;
 	let showCreateForm = false;
 	let imageInput: HTMLInputElement;
@@ -139,6 +142,14 @@
 		}
 	}
 
+	// Keyboard activate handler for elements with role="button"
+	function handleActivate(e: KeyboardEvent, action: () => void) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			action();
+		}
+	}
+
 	function validateForm() {
 		formErrors = {};
 
@@ -197,12 +208,16 @@
 		selectedPetHelpers.select(petId);
 	}
 
-	function handleActivate(e: KeyboardEvent, action: () => void) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			action();
-		}
-	}
+	function archivePet(petId: string) {
+        petHelpers.archive(petId);
+        if (selectedPetId === petId) {
+            selectedPetHelpers.clear();
+        }
+    }
+
+    function unarchivePet(petId: string) {
+        petHelpers.unarchive(petId);
+    }
 </script>
 
 <div class="pet-panel h-full" style="background: var(--petalytics-bg);">
@@ -338,15 +353,40 @@
 			<span class="ml-2" style="color: var(--petalytics-gold);">active_pets</span>
 		</div>
 
-		{#if pets.length === 0}
+		{#if activePets.length === 0}
 			<div class="px-2 py-4" style="color: var(--petalytics-subtle);">no pets yet — use add_pet to create one</div>
 		{:else}
-					{#each pets as pet}
+				{#each activePets as pet}
 						<div class="cli-row px-2 py-1" role="button" tabindex="0" data-selected={selectedPetId === pet.id} onclick={() => selectPet(pet.id)} onkeydown={(e) => handleActivate(e, () => selectPet(pet.id))}>
+ 						<span class="label" style="color: var(--petalytics-text);">{pet.name}</span>
+ 						<span class="value" style="color: var(--petalytics-subtle);">
+ 							{pet.species || 'pet'} | {pet.breed || '—'} | {pet.age}{pet.ageUnit === 'months' ? 'm' : pet.ageUnit === 'weeks' ? 'w' : 'y'}
+ 						</span>
+ 					</div>
+						<div class="px-2 pb-2 flex justify-end">
+                            <button class="arrow-btn" onclick={() => archivePet(pet.id)}>archive</button>
+                        </div>
+					{/each}
+ 		{/if}
+
+		<!-- Archived list -->
+		<div class="my-3"><div class="border-t" style="border-color: var(--petalytics-border);"></div></div>
+		<div class="cli-row px-2 py-1">
+			<span style="color: var(--petalytics-subtle);">#</span>
+			<span class="ml-2" style="color: var(--petalytics-gold);">archived_pets</span>
+		</div>
+		{#if archivedPets.length === 0}
+			<div class="px-2 py-2" style="color: var(--petalytics-subtle);">none</div>
+		{:else}
+			{#each archivedPets as pet}
+				<div class="cli-row px-2 py-1">
 					<span class="label" style="color: var(--petalytics-text);">{pet.name}</span>
 					<span class="value" style="color: var(--petalytics-subtle);">
 						{pet.species || 'pet'} | {pet.breed || '—'} | {pet.age}{pet.ageUnit === 'months' ? 'm' : pet.ageUnit === 'weeks' ? 'w' : 'y'}
 					</span>
+				</div>
+				<div class="px-2 pb-2 flex justify-end">
+					<button class="arrow-btn" onclick={() => unarchivePet(pet.id)}>unarchive</button>
 				</div>
 			{/each}
 		{/if}

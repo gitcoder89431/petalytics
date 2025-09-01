@@ -20,6 +20,7 @@ export class AIAnalyzer {
 
 	async analyzeJournalEntry(pet: PetPanelData, entry: JournalEntry): Promise<AnalysisResult> {
 		const prompt = this.buildAnalysisPrompt(pet, entry);
+		const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
 
 		try {
 			const response = await fetch(this.baseUrl, {
@@ -27,7 +28,7 @@ export class AIAnalyzer {
 				headers: {
 					Authorization: `Bearer ${this.apiKey}`,
 					'Content-Type': 'application/json',
-					'HTTP-Referer': window.location.origin,
+					...(referer ? { 'HTTP-Referer': referer } : {}),
 					'X-Title': 'Petalytics',
 				},
 				body: JSON.stringify({
@@ -118,12 +119,13 @@ Consider breed-specific traits, age-related needs, and behavioral patterns. Keep
 
 	async testConnection(): Promise<boolean> {
 		try {
+			const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
 			const response = await fetch(this.baseUrl, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${this.apiKey}`,
 					'Content-Type': 'application/json',
-					'HTTP-Referer': window.location.origin,
+					...(referer ? { 'HTTP-Referer': referer } : {}),
 					'X-Title': 'Petalytics',
 				},
 				body: JSON.stringify({
