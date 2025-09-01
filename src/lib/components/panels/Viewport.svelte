@@ -4,6 +4,8 @@
 	import { aiAnalysisHelpers, isAnalyzing } from '$lib/stores/ai-analysis';
 	import { PenTool, Brain, Calendar, Heart, Activity } from 'lucide-svelte';
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
+	import EmptyState from '../ui/EmptyState.svelte';
+	import Skeleton from '../ui/Skeleton.svelte';
 	import type { PetPanelData } from '$lib/types/Pet';
 	import type { JournalEntry } from '$lib/types/JournalEntry';
 
@@ -13,6 +15,10 @@
 	let selectedMood = '';
 	let selectedActivity = '';
 	let isSubmitting = false;
+	let loading = false;
+
+	// Computed values
+	$: lastEntry = selectedPet?.journalEntries?.length ? selectedPet.journalEntries[selectedPet.journalEntries.length - 1] : null;
 
 	onMount(() => {
 		// Load pets and selected pet from storage
@@ -70,25 +76,40 @@
 </script>
 
 <div class="viewport-container h-full flex flex-col">
-	{#if !selectedPet}
-		<!-- Welcome Screen -->
-		<div class="welcome-screen h-full flex items-center justify-center p-8">
-			<div class="text-center max-w-lg">
-				<div
-					class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center"
-				>
-					<Heart size={40} class="text-white" />
-				</div>
-				<h2 class="text-2xl font-bold mb-4" style="color: var(--petalytics-text);">
-					Welcome to Petalytics
-				</h2>
-				<p class="text-lg mb-6" style="color: var(--petalytics-subtle);">
-					Select a pet to start journaling and get AI-powered insights about their well-being.
-				</p>
+			{#if loading}
+			<!-- Loading State with Skeleton -->
+			<div class="space-y-4">
+				<Skeleton height="h-8" />
+				<Skeleton avatar height="h-20" />
+				<Skeleton height="h-6" />
+				<Skeleton height="h-4" />
 			</div>
+		{:else if !lastEntry}
+			<!-- No entries state -->
+			<EmptyState
+				icon="file-text"
+				title="No journal entries yet"
+				description="Start documenting {selectedPet?.name || 'your pet'}'s daily activities, moods, and special moments."
+				actionText="Create First Entry"
+				onAction={() => {
+					console.log('Create entry clicked');
+					// Could dispatch event to show journal form
+				}}
+			/>
+		{:else}
+		<!-- Enhanced Welcome Screen -->
+		<div class="welcome-screen h-full flex items-center justify-center">
+			<EmptyState
+				icon="heart"
+				title="Welcome to Petalytics! 🐾"
+				description="Create your first pet profile to start journaling and get AI-powered insights about your furry friend's well-being."
+				actionText="Create Your First Pet"
+				onAction={() => {
+					// Focus on pet panel - could dispatch event to parent
+					console.log('Create pet clicked');
+				}}
+			/>
 		</div>
-	{:else}
-		<!-- Pet Dashboard -->
 		<div class="pet-viewport h-full flex flex-col">
 			<!-- Header with pet info and navigation -->
 			<div class="viewport-header p-4 border-b" style="border-color: var(--petalytics-border);">
