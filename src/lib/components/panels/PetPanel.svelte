@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Upload, Terminal } from 'lucide-svelte';
-	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets.js';
+	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
 	import type { PetPanelData } from '$lib/types/Pet.js';
 
 	let pets: PetPanelData[] = [];
@@ -87,6 +87,10 @@
 	onMount(() => {
 		petStore.subscribe((value) => {
 			pets = value;
+			// If no selected pet and we have pets, auto-select the first one
+			if (!selectedPetId && pets.length > 0) {
+				selectedPetHelpers.select(pets[0].id);
+			}
 		});
 		selectedPetStore.subscribe((value) => {
 			selectedPetId = value;
@@ -184,6 +188,8 @@
 		};
 
 		petHelpers.add(pet);
+		// Auto-select the newly created pet
+		selectedPetHelpers.select(pet.id);
 		toggleCreateForm();
 	}
 

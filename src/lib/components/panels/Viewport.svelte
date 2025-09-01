@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
+	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
 	import { aiAnalysisHelpers, isAnalyzing } from '$lib/stores/ai-analysis';
-	import { PenTool, Brain, Calendar, Heart, Activity } from 'lucide-svelte';
+	import { PenTool, Brain, Calendar, Activity } from 'lucide-svelte';
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
@@ -10,6 +10,8 @@
 	import type { JournalEntry } from '$lib/types/JournalEntry';
 
 	let selectedPet: PetPanelData | null = null;
+	let selectedPetId: string | null = null;
+	let pets: PetPanelData[] = [];
 	let currentView = 'dashboard'; // dashboard, journal, history
 	let journalInput = '';
 	let selectedMood = '';
@@ -18,16 +20,46 @@
 	let loading = false;
 
 	// Computed values
-	$: lastEntry = selectedPet?.journalEntries?.length ? selectedPet.journalEntries[selectedPet.journalEntries.length - 1] : null;
+	$: lastEntry = selectedPet?.journalEntries?.length
+		? selectedPet.journalEntries[selectedPet.journalEntries.length - 1]
+		: null;
+
+	function formatAge(pet: PetPanelData): string {
+		if (!pet || (pet.age === undefined || pet.age === null)) return '';
+		const unit = pet.ageUnit || 'years';
+		const abbr = unit === 'years' ? 'y' : unit === 'months' ? 'm' : 'w';
+		return `${pet.age} ${abbr}`;
+	}
+
+	function petSubtitle(pet: PetPanelData): string {
+		const parts: string[] = [];
+		if (pet.species) parts.push(pet.species);
+		if (pet.breed) parts.push(pet.breed);
+		const age = formatAge(pet);
+		if (age) parts.push(age);
+		return parts.join(' | ');
+	}
 
 	onMount(() => {
-		// Load pets and selected pet from storage
-		petHelpers.load();
-		selectedPetHelpers.load();
+		// Subscribe first so incoming loads propagate into state
+		petStore.subscribe((list) => {
+			pets = list || [];
+			if (selectedPetId) {
+				selectedPet = pets.find((p) => p.id === selectedPetId) || null;
+			} else if (!selectedPetId && pets.length > 0) {
+				// Auto-select the first pet to show a summary by default
+				selectedPetHelpers.select(pets[0].id);
+			}
+		});
 
 		selectedPetStore.subscribe((petId) => {
-			selectedPet = petId ? petHelpers.getPet(petId) : null;
+			selectedPetId = petId;
+			selectedPet = petId ? pets.find((p) => p.id === petId) || null : null;
 		});
+
+		// Load from storage (will trigger subscriptions above)
+		petHelpers.load();
+		selectedPetHelpers.load();
 	});
 
 	async function submitJournalEntry() {
@@ -75,44 +107,29 @@
 	}
 </script>
 
-<div class="viewport-container h-full flex flex-col">
-			{#if loading}
-			<!-- Loading State with Skeleton -->
-			<div class="space-y-4">
-				<Skeleton height="h-8" />
-				<Skeleton avatar height="h-20" />
-				<Skeleton height="h-6" />
-				<Skeleton height="h-4" />
-			</div>
-		{:else if !lastEntry}
-			<!-- No entries state -->
-			<EmptyState
-				icon="file-text"
-				title="No journal entries yet"
-				description="Start documenting {selectedPet?.name || 'your pet'}'s daily activities, moods, and special moments."
-				actionText="Create First Entry"
-				onAction={() => {
-					console.log('Create entry clicked');
-					// Could dispatch event to show journal form
-				}}
-			/>
-		{:else}
-		<!-- Enhanced Welcome Screen -->
-		<div class="welcome-screen h-full flex items-center justify-center">
-			<EmptyState
-				icon="heart"
-				title="Welcome to Petalytics! 🐾"
-				description="Create your first pet profile to start journaling and get AI-powered insights about your furry friend's well-being."
-				actionText="Create Your First Pet"
-				onAction={() => {
-					// Focus on pet panel - could dispatch event to parent
-					console.log('Create pet clicked');
-				}}
-			/>
+<div class="viewport-container h-full flex flex-col font-mono">
+	{#if loading}
+		<!-- Loading State with Skeleton -->
+		<div class="space-y-4">
+			<Skeleton height="h-8" />
+			<Skeleton avatar height="h-20" />
+			<Skeleton height="h-6" />
+			<Skeleton height="h-4" />
 		</div>
+	{:else if !selectedPet}
+		<EmptyState
+			icon="file-text"
+			title="No pet selected"
+			description="Select a pet from the left panel to view details, add journal entries, and see AI insights."
+			actionText="Add a Pet"
+			onAction={() => {
+				console.log('Add a Pet clicked');
+			}}
+		/>
+	{:else}
 		<div class="pet-viewport h-full flex flex-col">
 			<!-- Header with pet info and navigation -->
-			<div class="viewport-header p-4 border-b" style="border-color: var(--petalytics-border);">
+			<div class="viewport-header p-4 border-b" style="border-color: var(--petalytics-border); background: var(--petalytics-overlay);">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-3">
 						<img
@@ -121,12 +138,8 @@
 							class="w-12 h-12 rounded-full object-cover"
 						/>
 						<div>
-							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">
-								{selectedPet.name}
-							</h2>
-							<p class="text-sm" style="color: var(--petalytics-subtle);">
-								{selectedPet.age} year old {selectedPet.breed}
-							</p>
+							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">{selectedPet.name}</h2>
+							<p class="text-xs" style="color: var(--petalytics-subtle);">{petSubtitle(selectedPet)}</p>
 						</div>
 					</div>
 
@@ -177,9 +190,9 @@
 								style="background: var(--petalytics-surface);"
 							>
 								<div class="text-2xl font-bold" style="color: var(--petalytics-accent);">
-									{selectedPet.age}
+									{formatAge(selectedPet)}
 								</div>
-								<div class="text-xs" style="color: var(--petalytics-subtle);">Years Old</div>
+								<div class="text-xs" style="color: var(--petalytics-subtle);">Age</div>
 							</div>
 							<div
 								class="stat-card p-4 rounded-lg text-center"
@@ -200,10 +213,10 @@
 								class="stat-card p-4 rounded-lg text-center"
 								style="background: var(--petalytics-surface);"
 							>
-								<div class="text-2xl font-bold" style="color: var(--petalytics-accent);">
-									{selectedPet.breed}
+								<div class="text-2xl font-bold truncate" style="color: var(--petalytics-accent);">
+									{selectedPet.breed || selectedPet.species || '—'}
 								</div>
-								<div class="text-xs" style="color: var(--petalytics-subtle);">Breed</div>
+								<div class="text-xs" style="color: var(--petalytics-subtle);">Breed / Species</div>
 							</div>
 						</div>
 
@@ -273,7 +286,7 @@
 										well-being.
 									</p>
 								{:else}
-									<AIInsightsCard petId={selectedPet.id} />
+									<AIInsightsCard petId={selectedPet.id} entryId={lastEntry?.id} />
 								{/if}
 							</div>
 						</div>
@@ -304,7 +317,7 @@
 											<option value="tired">😴 Tired</option>
 											<option value="anxious">😰 Anxious</option>
 											<option value="sad">😢 Sad</option>
-											<option value="sick">🤒 Unwell</option>
+											<option value="sick">🩺 Unwell</option>
 										</select>
 									</div>
 
