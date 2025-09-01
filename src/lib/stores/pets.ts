@@ -104,6 +104,47 @@ export const petHelpers = {
       this.save(updated);
       return updated;
     });
+  },
+
+  // Get all pets
+  getAll(callback?: (pets: PetPanelData[]) => void): (() => void) | undefined {
+    if (callback) {
+      return petStore.subscribe(callback);
+    } else {
+      let pets: PetPanelData[] = [];
+      const unsubscribe = petStore.subscribe(value => { pets = value; });
+      unsubscribe();
+      return undefined;
+    }
+  },
+
+  // Get all pets synchronously
+  getAllPets(): PetPanelData[] {
+    let pets: PetPanelData[] = [];
+    const unsubscribe = petStore.subscribe(value => { pets = value; });
+    unsubscribe();
+    return pets;
+  },
+
+  // Import pet data
+  importPet(petData: PetPanelData) {
+    petStore.update(pets => {
+      const existingIndex = pets.findIndex(p => p.id === petData.id);
+      let updated: PetPanelData[];
+      
+      if (existingIndex >= 0) {
+        // Update existing pet
+        updated = pets.map((pet, index) => 
+          index === existingIndex ? petData : pet
+        );
+      } else {
+        // Add new pet
+        updated = [...pets, petData];
+      }
+      
+      this.save(updated);
+      return updated;
+    });
   }
 };
 

@@ -80,6 +80,15 @@ export const guardianHelpers = {
 			localStorage.removeItem(STORAGE_KEY);
 		}
 		guardianStore.set(defaultGuardian);
+	},
+
+	// Import guardian data
+	importGuardian(guardianData: any) {
+		guardianStore.update(current => {
+			const updated = { ...current, ...guardianData };
+			this.save(updated);
+			return updated;
+		});
 	}
 };
 
