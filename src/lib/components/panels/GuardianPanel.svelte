@@ -3,6 +3,7 @@
 	import ThemeSelector from '../ui/ThemeSelector.svelte';
 	import { User, Key, Settings, CheckCircle, AlertCircle } from 'lucide-svelte';
 	import { guardianStore, guardianHelpers } from '$lib/stores/guardian.js';
+	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
 	
 	let apiKeyInput = '';
 	let guardianName = '';
@@ -33,17 +34,25 @@
 		apiKeyStatus = 'checking';
 		
 		try {
-			const response = await fetch('/api/ai/validate', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ apiKey: apiKeyInput })
-			});
-			
-			if (response.ok) {
+			// First try the AI analysis helper for more direct validation
+			const isValid = await aiAnalysisHelpers.testConnection();
+			if (isValid) {
 				apiKeyStatus = 'valid';
 				guardianHelpers.updateApiKey(apiKeyInput);
 			} else {
-				apiKeyStatus = 'invalid';
+				// Fallback to backend validation if direct test fails
+				const response = await fetch('/api/ai/validate', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ apiKey: apiKeyInput })
+				});
+				
+				if (response.ok) {
+					apiKeyStatus = 'valid';
+					guardianHelpers.updateApiKey(apiKeyInput);
+				} else {
+					apiKeyStatus = 'invalid';
+				}
 			}
 		} catch (error) {
 			apiKeyStatus = 'invalid';
