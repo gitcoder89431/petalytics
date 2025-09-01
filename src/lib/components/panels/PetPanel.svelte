@@ -3,8 +3,7 @@
 	import { Upload, Terminal } from 'lucide-svelte';
 	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
 	import type { PetPanelData } from '$lib/types/Pet.js';
-	import Modal from '../ui/Modal.svelte';
-	import MemorialModal from '../ui/MemorialModal.svelte';
+	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
 
 	let pets: PetPanelData[] = [];
 	// Derived lists
@@ -14,11 +13,8 @@
 	let showCreateForm = false;
 	let imageInput: HTMLInputElement;
 
-	// Archive workflow state
-	let confirmArchiveOpen = false;
+	// Right-panel driven workflows (no modals)
 	let petToArchive: PetPanelData | null = null;
-	let memorialOpen = false;
-	let memorialPet: PetPanelData | null = null;
 
 	const speciesSuggestions = ['dog','cat','bird','reptile','fish','rabbit','hamster','other'] as const;
 	const ageUnitSuggestions = ['years','months','weeks'] as const;
@@ -217,38 +213,26 @@
 	}
 
 	function archivePet(petId: string) {
-	    const p = pets.find((x) => x.id === petId) || null;
-	    petToArchive = p;
-	    confirmArchiveOpen = true;
-    }
-
-	function confirmArchive() {
-		if (!petToArchive) return;
-		petHelpers.archive(petToArchive.id);
-		if (selectedPetId === petToArchive.id) {
-			selectedPetHelpers.clear();
+		const p = pets.find((x) => x.id === petId) || null;
+		petToArchive = p;
+		if (p) {
+			selectedPetHelpers.select(p.id);
 		}
-		confirmArchiveOpen = false;
-		petToArchive = null;
+		uiHelpers.setView('confirmArchive');
 	}
 
-	function cancelArchive() {
-		confirmArchiveOpen = false;
-		petToArchive = null;
-	}
+	// Confirmation is handled in the right panel now
 
 	function unarchivePet(petId: string) {
 		petHelpers.unarchive(petId);
 	}
 
 	function openMemorial(petId: string) {
-		memorialPet = pets.find((p) => p.id === petId) || null;
-		memorialOpen = true;
-	}
-
-	function closeMemorial() {
-		memorialOpen = false;
-		memorialPet = null;
+		const p = pets.find((p) => p.id === petId) || null;
+		if (p) {
+			selectedPetHelpers.select(p.id);
+		}
+		uiHelpers.setView('memorial');
 	}
 </script>
 
@@ -426,19 +410,7 @@
 	</div>
 </div>
 
-<!-- Archive confirmation modal -->
-<Modal isOpen={confirmArchiveOpen} title="Archive Pet" size="sm" onclose={cancelArchive}>
-	<div class="space-y-4 font-mono">
-		<p>Mark {petToArchive?.name} as passed away?</p>
-		<div class="flex justify-end gap-2">
-			<button class="button-secondary" onclick={cancelArchive}>Cancel</button>
-			<button class="button" onclick={confirmArchive}>Confirm</button>
-		</div>
-	</div>
-</Modal>
-
-<!-- Memorial modal for archived pet -->
-<MemorialModal isOpen={memorialOpen} pet={memorialPet} onclose={closeMemorial} />
+<!-- Right panel shows confirmation/memorial; no modals here -->
 
 <style>
 .cli-row {

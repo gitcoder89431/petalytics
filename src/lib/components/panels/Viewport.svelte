@@ -6,13 +6,14 @@
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
+	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
 	import type { PetPanelData } from '$lib/types/Pet';
 	import type { JournalEntry } from '$lib/types/JournalEntry';
 
 	let selectedPet: PetPanelData | null = null;
 	let selectedPetId: string | null = null;
 	let pets: PetPanelData[] = [];
-	let currentView = 'dashboard'; // dashboard, journal, history
+	let currentView: 'dashboard' | 'journal' | 'history' | 'memorial' | 'confirmArchive' = 'dashboard';
 	let journalInput = '';
 	let selectedMood = '';
 	let selectedActivity = '';
@@ -57,6 +58,9 @@
 			selectedPet = petId ? pets.find((p) => p.id === petId) || null : null;
 		});
 
+		// Drive view from shared UI store
+		rightPanelView.subscribe((v) => (currentView = v));
+
 		// Load from storage (will trigger subscriptions above)
 		petHelpers.load();
 		selectedPetHelpers.load();
@@ -95,7 +99,7 @@
 			journalInput = '';
 			selectedMood = '';
 			selectedActivity = '';
-			currentView = 'dashboard';
+			uiHelpers.setView('dashboard');
 
 			// Refresh selected pet data
 			selectedPet = petHelpers.getPet(selectedPet.id);
@@ -127,7 +131,7 @@
 			}}
 		/>
 	{:else}
-		<div class="pet-viewport h-full flex flex-col">
+	<div class="pet-viewport h-full flex flex-col">
 			<!-- Header with pet info and navigation -->
 			<div class="viewport-header p-4 border-b" style="border-color: var(--petalytics-border); background: var(--petalytics-overlay);">
 				<div class="flex items-center justify-between">
@@ -145,21 +149,21 @@
 
 					<div class="flex space-x-2">
 						<button
-							on:click={() => (currentView = 'dashboard')}
+							on:click={() => uiHelpers.setView('dashboard')}
 							class="nav-button px-3 py-1 rounded-md text-sm"
 							class:active={currentView === 'dashboard'}
 						>
 							Dashboard
 						</button>
 						<button
-							on:click={() => (currentView = 'journal')}
+							on:click={() => uiHelpers.setView('journal')}
 							class="nav-button px-3 py-1 rounded-md text-sm"
 							class:active={currentView === 'journal'}
 						>
 							New Entry
 						</button>
 						<button
-							on:click={() => (currentView = 'history')}
+							on:click={() => uiHelpers.setView('history')}
 							class="nav-button px-3 py-1 rounded-md text-sm"
 							class:active={currentView === 'history'}
 						>
@@ -171,7 +175,59 @@
 
 			<!-- Content Area -->
 			<div class="viewport-content flex-1 p-4 overflow-y-auto">
-				{#if currentView === 'dashboard'}
+				{#if currentView === 'confirmArchive'}
+					<!-- Confirm Archive View -->
+					<div class="space-y-4 font-mono">
+						<h3 class="text-lg font-semibold" style="color: var(--petalytics-text);">Archive Pet</h3>
+						<p>Mark {selectedPet?.name} as passed away?</p>
+						<div class="flex justify-end gap-2">
+							<button class="button-secondary" on:click={() => uiHelpers.setView('dashboard')}>Cancel</button>
+							<button class="button" on:click={() => {
+								if (selectedPet) {
+									petHelpers.archive(selectedPet.id);
+									if (selectedPetId === selectedPet.id) {
+										selectedPetHelpers.clear();
+									}
+								}
+								uiHelpers.setView('dashboard');
+							}}>Confirm</button>
+						</div>
+					</div>
+				{:else if currentView === 'memorial'}
+					<!-- Memorial View (inline, no modal) -->
+					<div class="space-y-4 font-mono">
+						<div class="rounded p-3" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);">
+							<div class="flex items-center justify-between">
+								<div>
+									<div class="text-sm" style="color: var(--petalytics-subtle);">{petSubtitle(selectedPet!)}</div>
+									<div class="text-base font-semibold" style="color: var(--petalytics-text);">
+										In loving memory of {selectedPet?.name}
+									</div>
+								</div>
+								<div class="text-xs px-2 py-1 rounded" style="background: var(--petalytics-surface); color: var(--petalytics-subtle);">
+									{selectedPet?.journalEntries.length || 0} memories
+								</div>
+							</div>
+						</div>
+						{#if (selectedPet?.journalEntries.length || 0) === 0}
+							<div class="text-sm" style="color: var(--petalytics-subtle);">No journal entries yet.</div>
+						{:else}
+							<div class="space-y-3">
+								{#each [...(selectedPet?.journalEntries || [])].slice().reverse() as entry}
+									<div class="rounded border p-3" style="background: var(--petalytics-surface); border-color: var(--petalytics-border);">
+										<div class="flex items-center justify-between mb-2">
+											<div class="text-xs" style="color: var(--petalytics-subtle);">
+												{new Date(entry.date as any).toLocaleDateString()}
+											</div>
+											<div class="text-sm" style="color: var(--petalytics-text);">{entry.mood || '🐾'}</div>
+										</div>
+										<div class="text-sm" style="color: var(--petalytics-text);">{entry.content}</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{:else if currentView === 'dashboard'}
 					<!-- Dashboard View -->
 					<div class="dashboard-grid space-y-4">
 						<!-- Stats Cards -->
