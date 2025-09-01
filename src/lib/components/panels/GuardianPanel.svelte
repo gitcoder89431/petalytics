@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import ThemeSelector from '../ui/ThemeSelector.svelte';
+	import DataManager from '../ui/DataManager.svelte';
 	import { User, Key, Settings, CheckCircle, AlertCircle } from 'lucide-svelte';
 	import { guardianStore, guardianHelpers } from '$lib/stores/guardian.js';
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
@@ -14,6 +15,7 @@
 	};
 	
 	let apiKeyStatus = 'unchecked'; // unchecked, checking, valid, invalid
+	let showDataManager = false;
 	
 	onMount(() => {
 		// Load saved guardian data
@@ -198,6 +200,23 @@
 					</span>
 				</div>
 			</div>
+		</div>
+
+		<!-- Data Management Section -->
+		<div class="section">
+			<div class="flex items-center justify-between mb-2">
+				<span class="text-sm font-medium" style="color: var(--petalytics-subtle);">Data Management</span>
+				<button 
+					on:click={() => showDataManager = !showDataManager}
+					class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+				>
+					{showDataManager ? 'Hide' : 'Show'} Export/Import
+				</button>
+			</div>
+			
+			{#if showDataManager}
+				<DataManager />
+			{/if}
 		</div>
 	</div>
 </div>
