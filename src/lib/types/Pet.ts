@@ -23,9 +23,12 @@ export interface Pet {
 export interface PetPanelData {
 	id: string;
 	name: string;
+	species?: string;
 	breed: string;
 	age: number;
-	gender: 'male' | 'female';
+	ageUnit?: 'years' | 'months' | 'weeks';
+	gender: 'male' | 'female' | 'unknown';
+	size?: 'tiny' | 'small' | 'medium' | 'large' | 'extra_large';
 	profileImageUrl?: string;
 	createdAt: string;
 	journalEntries: PetJournalEntry[];

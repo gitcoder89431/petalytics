@@ -9,11 +9,76 @@
 	let showCreateForm = false;
 	let imageInput: HTMLInputElement;
 
+	const speciesSuggestions = ['dog','cat','bird','reptile','fish','rabbit','hamster','other'] as const;
+	const ageUnitSuggestions = ['years','months','weeks'] as const;
+	const genderSuggestions = ['male','female','unknown'] as const;
+	const sizeSuggestions = ['tiny','small','medium','large','extra_large'] as const;
+
+	const breedSuggestionsMap: Record<string, string[]> = {
+		dog: ['mixed','labrador','golden_retriever','german_shepherd','bulldog'],
+		cat: ['persian','siamese','maine_coon','sphynx','mixed'],
+		bird: ['budgie','cockatiel','parrot','canary','finch'],
+		reptile: ['snake','lizard','turtle','gecko','iguana'],
+		fish: ['goldfish','betta','tropical','saltwater'],
+		rabbit: ['lop','rex','lionhead','netherland_dwarf'],
+		hamster: ['syrian','dwarf','roborovski','chinese'],
+		other: [],
+	};
+
+	function getBreedSuggestions(species: string): string[] {
+		return breedSuggestionsMap[species] || [];
+	}
+
+	const norm = (s: string) => (s || '').trim().toLowerCase();
+
+	function normalizeAgeUnit(u: string): 'years' | 'months' | 'weeks' {
+		const v = norm(u);
+		if (v.startsWith('m')) {
+			// could be months
+			return 'months';
+		}
+		if (v.startsWith('w')) {
+			return 'weeks';
+		}
+		return 'years';
+	}
+
+	function firstSuggestion(suggestions: readonly string[] | string[], value: string): string | null {
+		const p = norm(value);
+		if (!p) return null;
+		const list = Array.from(suggestions);
+		return list.find((s) => s.startsWith(p)) || null;
+	}
+
+	function handleAutocomplete(field: 'species'|'breed'|'ageUnit'|'gender'|'size', suggestions: readonly string[] | string[], e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			const current = (newPet as any)[field] as string;
+			const choice = firstSuggestion(suggestions, current);
+			if (choice) {
+				(newPet as any)[field] = choice;
+				e.preventDefault();
+			}
+		}
+	}
+
+	function onSpeciesInput(e: Event) {
+		const target = e.target as HTMLInputElement;
+		const prev = norm(newPet.species);
+		newPet.species = target.value;
+		const curr = norm(target.value);
+		if (curr !== prev) {
+			newPet.breed = '';
+		}
+	}
+
 	let newPet = {
 		name: '',
+		species: '',
 		breed: '',
 		age: '',
-		gender: '',
+		ageUnit: 'years',
+		gender: 'unknown',
+		size: 'medium',
 		profileImageUrl: '',
 	};
 
@@ -40,9 +105,12 @@
 	function resetForm() {
 		newPet = {
 			name: '',
+			species: '',
 			breed: '',
 			age: '',
-			gender: '',
+			ageUnit: 'years',
+			gender: 'unknown',
+			size: 'medium',
 			profileImageUrl: '',
 		};
 		formErrors = {};
@@ -74,13 +142,21 @@
 			formErrors.name = 'Pet name is required';
 		}
 
+		if (!newPet.species) {
+			formErrors.species = 'Please enter species';
+		}
+
 		if (!newPet.breed.trim()) {
-			formErrors.breed = 'Breed is required';
+			// Breed can be optional for some species; provide hint if suggestions exist
+			const suggestions = getBreedSuggestions(newPet.species);
+			if (suggestions.length) {
+				formErrors.breed = `Consider selecting a type e.g. ${suggestions.slice(0,3).join('|')}`;
+			}
 		}
 
 		const age = parseInt(newPet.age);
-		if (!newPet.age || age < 0 || age > 30) {
-			formErrors.age = 'Please enter a valid age (0-30 years)';
+		if (Number.isNaN(age) || age < 0) {
+			formErrors.age = 'Please enter a valid age';
 		}
 
 		if (!newPet.gender) {
@@ -96,9 +172,12 @@
 		const pet: PetPanelData = {
 			id: Date.now().toString(),
 			name: newPet.name.trim(),
+			species: newPet.species || 'other',
 			breed: newPet.breed.trim(),
 			age: parseInt(newPet.age),
-			gender: newPet.gender as 'male' | 'female',
+			ageUnit: normalizeAgeUnit(newPet.ageUnit),
+			gender: (newPet.gender as 'male'|'female'|'unknown'),
+			size: newPet.size as 'tiny'|'small'|'medium'|'large'|'extra_large',
 			profileImageUrl: newPet.profileImageUrl || '/images/default-pet.png',
 			createdAt: new Date().toISOString(),
 			journalEntries: [],
@@ -137,6 +216,11 @@
 
 		{#if showCreateForm}
 			<div class="mt-2 p-2 rounded" style="background: var(--petalytics-overlay);">
+				<!-- section header -->
+				<div class="cli-row px-2 py-1">
+					<span style="color: var(--petalytics-subtle);">#</span>
+					<span class="ml-2" style="color: var(--petalytics-gold);">new_pet</span>
+				</div>
 				<!-- name -->
 				<div class="cli-row px-2 py-1">
 					<span class="label">name</span>
@@ -146,11 +230,31 @@
 					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.name}</p>
 				{/if}
 
-				<!-- breed -->
+				<!-- species (text + autocomplete) -->
+				<div class="cli-row px-2 py-1">
+					<span class="label">species</span>
+					<input class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.species} placeholder="e.g. bird" list="species-suggestions" oninput={onSpeciesInput} onkeydown={(e) => handleAutocomplete('species', speciesSuggestions, e)} />
+				</div>
+				<datalist id="species-suggestions">
+					{#each speciesSuggestions as s}
+						<option value={s}></option>
+					{/each}
+				</datalist>
+				{#if formErrors.species}
+					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.species}</p>
+				{/if}
+
+				<!-- breed (text + species-based autocomplete) -->
 				<div class="cli-row px-2 py-1">
 					<span class="label">breed</span>
-					<input class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.breed} placeholder="Breed" />
+					<input class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.breed} placeholder="Breed / type" list="breed-suggestions" onkeydown={(e) => handleAutocomplete('breed', getBreedSuggestions(norm(newPet.species)), e)} />
 				</div>
+				<!-- suggestions datalist -->
+				<datalist id="breed-suggestions">
+					{#each getBreedSuggestions(newPet.species) as suggestion}
+						<option value={suggestion}></option>
+					{/each}
+				</datalist>
 				{#if formErrors.breed}
 					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.breed}</p>
 				{/if}
@@ -158,8 +262,16 @@
 				<!-- age -->
 				<div class="cli-row px-2 py-1">
 					<span class="label">age</span>
-					<input class="value bg-transparent border-none outline-none input-inline" type="number" min="0" max="30" bind:value={newPet.age} placeholder="Age" />
+					<div class="value flex items-center justify-end gap-2">
+						<input class="bg-transparent border-none outline-none input-inline w-20 text-right" type="number" min="0" bind:value={newPet.age} placeholder="0" />
+						<input class="bg-transparent border-none outline-none input-inline w-28" bind:value={newPet.ageUnit} placeholder="years|months|weeks" list="age-unit-suggestions" onkeydown={(e) => handleAutocomplete('ageUnit', ageUnitSuggestions, e)} />
+					</div>
 				</div>
+				<datalist id="age-unit-suggestions">
+					{#each ageUnitSuggestions as u}
+						<option value={u}></option>
+					{/each}
+				</datalist>
 				{#if formErrors.age}
 					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.age}</p>
 				{/if}
@@ -167,15 +279,27 @@
 				<!-- gender -->
 				<div class="cli-row px-2 py-1">
 					<span class="label">gender</span>
-					<select class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.gender}>
-						<option value="">Select gender</option>
-						<option value="male">male</option>
-						<option value="female">female</option>
-					</select>
+					<input class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.gender} placeholder="male|female|unknown" list="gender-suggestions" onkeydown={(e) => handleAutocomplete('gender', genderSuggestions, e)} />
 				</div>
+				<datalist id="gender-suggestions">
+					{#each genderSuggestions as g}
+						<option value={g}></option>
+					{/each}
+				</datalist>
 				{#if formErrors.gender}
 					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.gender}</p>
 				{/if}
+
+				<!-- size -->
+				<div class="cli-row px-2 py-1">
+					<span class="label">size</span>
+					<input class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.size} placeholder="tiny|small|medium|large|extra_large" list="size-suggestions" onkeydown={(e) => handleAutocomplete('size', sizeSuggestions, e)} />
+				</div>
+				<datalist id="size-suggestions">
+					{#each sizeSuggestions as s}
+						<option value={s}></option>
+					{/each}
+				</datalist>
 
 				<!-- profile image upload -->
 				<div class="cli-row px-2 py-1" style="align-items: flex-start;">
@@ -205,7 +329,7 @@
 		<!-- Pets list -->
 		<div class="cli-row px-2 py-1">
 			<span style="color: var(--petalytics-subtle);">#</span>
-			<span class="ml-2" style="color: var(--petalytics-gold);">pets</span>
+			<span class="ml-2" style="color: var(--petalytics-gold);">active_pets</span>
 		</div>
 
 		{#if pets.length === 0}
@@ -215,7 +339,7 @@
 						<div class="cli-row px-2 py-1" role="button" tabindex="0" data-selected={selectedPetId === pet.id} onclick={() => selectPet(pet.id)} onkeydown={(e) => handleActivate(e, () => selectPet(pet.id))}>
 					<span class="label" style="color: var(--petalytics-text);">{pet.name}</span>
 					<span class="value" style="color: var(--petalytics-subtle);">
-						{pet.breed} | {pet.age}{pet.age === 1 ? 'y' : 'y'}
+						{pet.species || 'pet'} | {pet.breed || '—'} | {pet.age}{pet.ageUnit === 'months' ? 'm' : pet.ageUnit === 'weeks' ? 'w' : 'y'}
 					</span>
 				</div>
 			{/each}
