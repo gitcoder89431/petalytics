@@ -94,9 +94,14 @@
 	onMount(() => {
 		petStore.subscribe((value) => {
 			pets = value;
-			// If no selected pet and we have pets, auto-select the first one
+			// If no selected pet and we have pets, auto-select the first ACTIVE one
 			if (!selectedPetId && pets.length > 0) {
-				selectedPetHelpers.select(pets[0].id);
+				const firstActive = pets.find((p) => !p.archived) || null;
+				if (firstActive) {
+					selectedPetHelpers.select(firstActive.id);
+				} else {
+					selectedPetHelpers.clear();
+				}
 			}
 		});
 		selectedPetStore.subscribe((value) => {
@@ -227,12 +232,10 @@
 		petHelpers.unarchive(petId);
 	}
 
-	function openMemorial(petId: string) {
-		const p = pets.find((p) => p.id === petId) || null;
-		if (p) {
-			selectedPetHelpers.select(p.id);
-		}
-		uiHelpers.setView('memorial');
+	function openMemorial(_petId: string) {
+		// Centralized memories view; no per-pet selection needed
+		selectedPetHelpers.clear();
+		uiHelpers.setView('memories');
 	}
 </script>
 
@@ -388,9 +391,11 @@
 
 		<!-- Archived list -->
 		<div class="my-3"><div class="border-t" style="border-color: var(--petalytics-border);"></div></div>
-		<div class="cli-row px-2 py-1" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent);">
+		<div class="cli-row px-2 py-1 items-center" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent);">
 			<span style="color: var(--petalytics-subtle);">#</span>
 			<span class="ml-2" style="color: var(--petalytics-gold);">archived_pets</span>
+			<span class="ml-auto"></span>
+			<button class="arrow-btn" onclick={() => openMemorial('all')} disabled={archivedPets.length === 0}>view_memories</button>
 		</div>
 		{#if archivedPets.length === 0}
 			<div class="px-2 py-2" style="color: var(--petalytics-subtle);">none</div>
@@ -401,9 +406,6 @@
 					<span class="value" style="color: var(--petalytics-subtle);">
 						{pet.species || 'pet'} | {pet.breed || '—'} | {pet.age}{pet.ageUnit === 'months' ? 'm' : pet.ageUnit === 'weeks' ? 'w' : 'y'}
 					</span>
-				</div>
-				<div class="px-2 pb-2 flex justify-end">
-					<button class="arrow-btn" onclick={() => openMemorial(pet.id)}>view_memories</button>
 				</div>
 			{/each}
 		{/if}

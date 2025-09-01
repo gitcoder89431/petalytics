@@ -13,7 +13,7 @@
 	let selectedPet: PetPanelData | null = null;
 	let selectedPetId: string | null = null;
 	let pets: PetPanelData[] = [];
-	let currentView: 'dashboard' | 'journal' | 'history' | 'memorial' | 'confirmArchive' = 'dashboard';
+	let currentView: 'dashboard' | 'journal' | 'history' | 'memories' | 'confirmArchive' = 'dashboard';
 	let journalInput = '';
 	let selectedMood = '';
 	let selectedActivity = '';
@@ -41,6 +41,14 @@
 		return parts.join(' | ');
 	}
 
+	function isArchived(p: PetPanelData | null): boolean {
+		return !!(p && p.archived);
+	}
+
+	function archivedPetsList(): PetPanelData[] {
+		return (pets || []).filter((p) => p.archived);
+	}
+
 	onMount(() => {
 		// Subscribe first so incoming loads propagate into state
 		petStore.subscribe((list) => {
@@ -48,14 +56,24 @@
 			if (selectedPetId) {
 				selectedPet = pets.find((p) => p.id === selectedPetId) || null;
 			} else if (!selectedPetId && pets.length > 0) {
-				// Auto-select the first pet to show a summary by default
-				selectedPetHelpers.select(pets[0].id);
+				// Auto-select the first ACTIVE pet to show a summary by default
+				const firstActive = pets.find((p) => !p.archived) || null;
+				if (firstActive) {
+					selectedPetHelpers.select(firstActive.id);
+					uiHelpers.setView('dashboard');
+				} else {
+					// No active pets: keep selection cleared and default view dashboard
+					selectedPetHelpers.clear();
+					uiHelpers.setView('dashboard');
+				}
 			}
 		});
 
 		selectedPetStore.subscribe((petId) => {
 			selectedPetId = petId;
 			selectedPet = petId ? pets.find((p) => p.id === petId) || null : null;
+			// Keep current view unless user explicitly opened memories.
+			// Disable actions via disabled buttons when archived is selected.
 		});
 
 		// Drive view from shared UI store
@@ -136,14 +154,16 @@
 			<div class="viewport-header p-4 border-b" style="border-color: var(--petalytics-border); background: var(--petalytics-overlay);">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-3">
-						<img
-							src={selectedPet.profileImageUrl || '/images/default-pet.png'}
-							alt={selectedPet.name}
-							class="w-12 h-12 rounded-full object-cover"
-						/>
+						{#if selectedPet}
+							<img
+								src={selectedPet.profileImageUrl || '/images/default-pet.png'}
+								alt={selectedPet.name}
+								class="w-12 h-12 rounded-full object-cover"
+							/>
+						{/if}
 						<div>
-							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">{selectedPet.name}</h2>
-							<p class="text-xs" style="color: var(--petalytics-subtle);">{petSubtitle(selectedPet)}</p>
+							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">{selectedPet ? selectedPet.name : 'Memories'}</h2>
+							<p class="text-xs" style="color: var(--petalytics-subtle);">{selectedPet ? petSubtitle(selectedPet) : 'Archived memories'}</p>
 						</div>
 					</div>
 
@@ -152,6 +172,7 @@
 							on:click={() => uiHelpers.setView('dashboard')}
 							class="nav-button px-3 py-1 rounded-md text-sm"
 							class:active={currentView === 'dashboard'}
+							disabled={isArchived(selectedPet)}
 						>
 							Dashboard
 						</button>
@@ -159,6 +180,7 @@
 							on:click={() => uiHelpers.setView('journal')}
 							class="nav-button px-3 py-1 rounded-md text-sm"
 							class:active={currentView === 'journal'}
+							disabled={isArchived(selectedPet)}
 						>
 							New Entry
 						</button>
@@ -166,6 +188,7 @@
 							on:click={() => uiHelpers.setView('history')}
 							class="nav-button px-3 py-1 rounded-md text-sm"
 							class:active={currentView === 'history'}
+							disabled={isArchived(selectedPet)}
 						>
 							History
 						</button>
@@ -193,38 +216,49 @@
 							}}>Confirm</button>
 						</div>
 					</div>
-				{:else if currentView === 'memorial'}
-					<!-- Memorial View (inline, no modal) -->
+				{:else if currentView === 'memories'}
+					<!-- Centralized archived memories view -->
 					<div class="space-y-4 font-mono">
 						<div class="rounded p-3" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);">
 							<div class="flex items-center justify-between">
 								<div>
-									<div class="text-sm" style="color: var(--petalytics-subtle);">{petSubtitle(selectedPet!)}</div>
-									<div class="text-base font-semibold" style="color: var(--petalytics-text);">
-										In loving memory of {selectedPet?.name}
-									</div>
+									<div class="text-base font-semibold" style="color: var(--petalytics-text);">Memories</div>
+									<div class="text-xs" style="color: var(--petalytics-subtle);">All archived pets</div>
 								</div>
 								<div class="text-xs px-2 py-1 rounded" style="background: var(--petalytics-surface); color: var(--petalytics-subtle);">
-									{selectedPet?.journalEntries.length || 0} memories
+									{archivedPetsList().length} pets
 								</div>
 							</div>
 						</div>
-						{#if (selectedPet?.journalEntries.length || 0) === 0}
-							<div class="text-sm" style="color: var(--petalytics-subtle);">No journal entries yet.</div>
+
+						{#if archivedPetsList().length === 0}
+							<div class="text-sm" style="color: var(--petalytics-subtle);">No archived pets yet.</div>
 						{:else}
-							<div class="space-y-3">
-								{#each [...(selectedPet?.journalEntries || [])].slice().reverse() as entry}
-									<div class="rounded border p-3" style="background: var(--petalytics-surface); border-color: var(--petalytics-border);">
-										<div class="flex items-center justify-between mb-2">
-											<div class="text-xs" style="color: var(--petalytics-subtle);">
-												{new Date(entry.date as any).toLocaleDateString()}
-											</div>
-											<div class="text-sm" style="color: var(--petalytics-text);">{entry.mood || '🐾'}</div>
-										</div>
-										<div class="text-sm" style="color: var(--petalytics-text);">{entry.content}</div>
+							{#each archivedPetsList() as ap}
+								<div class="rounded border p-3 space-y-2" style="background: var(--petalytics-surface); border-color: var(--petalytics-border);">
+									<div class="flex items-center justify-between">
+										<div class="font-semibold" style="color: var(--petalytics-text);">In loving memory of {ap.name}</div>
+										<div class="text-xs" style="color: var(--petalytics-subtle);">{(ap.journalEntries?.length || 0)} memories</div>
 									</div>
-								{/each}
-							</div>
+									{#if (ap.journalEntries?.length || 0) === 0}
+										<div class="text-sm" style="color: var(--petalytics-subtle);">No journal entries.</div>
+									{:else}
+										<div class="space-y-2">
+											{#each [...(ap.journalEntries || [])].slice().reverse() as entry}
+												<div class="rounded border p-3" style="background: var(--petalytics-surface); border-color: var(--petalytics-border);">
+													<div class="flex items-center justify-between mb-2">
+														<div class="text-xs" style="color: var(--petalytics-subtle);">
+															{new Date(entry.date as any).toLocaleDateString()} — {ap.name}
+														</div>
+														<div class="text-sm" style="color: var(--petalytics-text);">{entry.mood || '🐾'}</div>
+													</div>
+													<div class="text-sm" style="color: var(--petalytics-text);">{entry.content}</div>
+												</div>
+											{/each}
+										</div>
+									{/if}
+								</div>
+							{/each}
 						{/if}
 					</div>
 				{:else if currentView === 'dashboard'}
