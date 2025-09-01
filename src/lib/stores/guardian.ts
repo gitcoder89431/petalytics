@@ -10,9 +10,9 @@ const defaultGuardian = {
 	preferences: {
 		dailyReminders: false,
 		aiInsights: true,
-		notifications: true
+		notifications: true,
 	},
-	apiKeyValid: false
+	apiKeyValid: false,
 };
 
 export const guardianStore = writable(defaultGuardian);
@@ -58,7 +58,7 @@ export const guardianHelpers = {
 
 	// Update guardian data
 	update(updates: any) {
-		guardianStore.update(current => {
+		guardianStore.update((current) => {
 			const updated = { ...current, ...updates };
 			this.save(updated);
 			return updated;
@@ -67,7 +67,7 @@ export const guardianHelpers = {
 
 	// Update API key specifically
 	updateApiKey(apiKey: string) {
-		guardianStore.update(current => {
+		guardianStore.update((current) => {
 			const updated = { ...current, apiKey, apiKeyValid: true };
 			this.save(updated);
 			return updated;
@@ -84,12 +84,12 @@ export const guardianHelpers = {
 
 	// Import guardian data
 	importGuardian(guardianData: any) {
-		guardianStore.update(current => {
+		guardianStore.update((current) => {
 			const updated = { ...current, ...guardianData };
 			this.save(updated);
 			return updated;
 		});
-	}
+	},
 };
 
 // Actions - keeping for backward compatibility
@@ -98,21 +98,21 @@ export const guardianActions = {
 		// TODO: Implement API call to load guardian data
 		console.log('Loading guardian...');
 	},
-	
+
 	async updateGuardian(updates: Partial<Guardian>) {
 		// TODO: Implement API call to update guardian
 		console.log('Updating guardian:', updates);
 	},
-	
+
 	async login(email: string, password: string) {
 		// TODO: Implement authentication
 		console.log('Logging in:', email);
 	},
-	
+
 	async logout() {
 		// TODO: Implement logout
 		console.log('Logging out...');
 		guardian.set(null);
 		isAuthenticated.set(false);
-	}
+	},
 };

@@ -32,8 +32,9 @@
 
 	const inputId = id || name || Math.random().toString(36).substring(7);
 	const hasError = !!error;
-	
-	const baseClasses = 'block w-full px-3 py-2 border rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0';
+
+	const baseClasses =
+		'block w-full px-3 py-2 border rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0';
 	const normalClasses = 'border-gray-300 focus:border-blue-500 focus:ring-blue-500';
 	const errorClasses = 'border-red-300 focus:border-red-500 focus:ring-red-500';
 	const disabledClasses = 'bg-gray-50 text-gray-500 cursor-not-allowed';
@@ -48,7 +49,7 @@
 			{/if}
 		</label>
 	{/if}
-	
+
 	<input
 		{type}
 		{placeholder}
@@ -57,13 +58,15 @@
 		{required}
 		{name}
 		id={inputId}
-		class="{baseClasses} {hasError ? errorClasses : normalClasses} {disabled ? disabledClasses : ''}"
-		oninput={oninput}
-		onchange={onchange}
-		onblur={onblur}
+		class="{baseClasses} {hasError ? errorClasses : normalClasses} {disabled
+			? disabledClasses
+			: ''}"
+		{oninput}
+		{onchange}
+		{onblur}
 		{...rest}
 	/>
-	
+
 	{#if error}
 		<p class="text-sm text-red-600">{error}</p>
 	{/if}

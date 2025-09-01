@@ -13,16 +13,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 			method: 'POST',
 			headers: {
-				'Authorization': `Bearer ${apiKey}`,
+				Authorization: `Bearer ${apiKey}`,
 				'Content-Type': 'application/json',
 				'HTTP-Referer': 'https://petalytics.vercel.app',
-				'X-Title': 'Petalytics'
+				'X-Title': 'Petalytics',
 			},
 			body: JSON.stringify({
 				model: 'openai/gpt-3.5-turbo',
 				messages: [{ role: 'user', content: 'test' }],
-				max_tokens: 1
-			})
+				max_tokens: 1,
+			}),
 		});
 
 		if (response.ok) {

@@ -9,16 +9,16 @@ interface ApiResponse<T> {
 }
 
 export class ApiError extends Error {
-	constructor(public status: number, message: string) {
+	constructor(
+		public status: number,
+		message: string
+	) {
 		super(message);
 		this.name = 'ApiError';
 	}
 }
 
-async function apiRequest<T>(
-	endpoint: string,
-	options: RequestInit = {}
-): Promise<ApiResponse<T>> {
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
 	try {
 		const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 			headers: {
