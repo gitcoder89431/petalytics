@@ -1,7 +1,7 @@
 export interface Guardian {
-	id: string;
+	id?: string;
 	name: string;
-	email: string;
+	email?: string;
 	phoneNumber?: string;
 	address?: string;
 	emergencyContact?: {
@@ -9,11 +9,13 @@ export interface Guardian {
 		phone: string;
 		relationship: string;
 	};
+	apiKey: string;
 	preferences: {
-		theme: 'light' | 'dark' | 'auto';
+		dailyReminders: boolean;
+		aiInsights: boolean;
 		notifications: boolean;
-		language: string;
 	};
-	createdAt: Date;
-	updatedAt: Date;
+	apiKeyValid?: boolean;
+	createdAt?: Date;
+	updatedAt?: Date;
 }
