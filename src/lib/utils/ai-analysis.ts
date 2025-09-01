@@ -13,9 +13,11 @@ export interface AnalysisResult {
 export class AIAnalyzer {
 	private apiKey: string;
 	private baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
+	private model: string;
 
-	constructor(apiKey: string) {
+	constructor(apiKey: string, model: string = 'anthropic/claude-3.5-sonnet') {
 		this.apiKey = apiKey;
+		this.model = model;
 	}
 
 	async analyzeJournalEntry(pet: PetPanelData, entry: JournalEntry): Promise<AnalysisResult> {
@@ -32,7 +34,7 @@ export class AIAnalyzer {
 					'X-Title': 'Petalytics',
 				},
 				body: JSON.stringify({
-					model: 'anthropic/claude-3.5-sonnet',
+					model: this.model,
 					messages: [
 						{
 							role: 'system',
@@ -129,7 +131,7 @@ Consider breed-specific traits, age-related needs, and behavioral patterns. Keep
 					'X-Title': 'Petalytics',
 				},
 				body: JSON.stringify({
-					model: 'openai/gpt-3.5-turbo',
+					model: this.model,
 					messages: [{ role: 'user', content: 'test' }],
 					max_tokens: 1,
 				}),

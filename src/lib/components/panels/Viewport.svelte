@@ -4,6 +4,7 @@
 	import { aiAnalysisHelpers, isAnalyzing } from '$lib/stores/ai-analysis';
 	import { PenTool, Brain, Calendar, Activity } from 'lucide-svelte';
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
+	import DataManager from '../ui/DataManager.svelte';
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
 	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
@@ -162,12 +163,12 @@
 							/>
 						{/if}
 						<div>
-							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">{selectedPet ? selectedPet.name : 'Memories'}</h2>
-							<p class="text-xs" style="color: var(--petalytics-subtle);">{selectedPet ? petSubtitle(selectedPet) : 'Archived memories'}</p>
+							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">{selectedPet ? selectedPet.name : (currentView === 'memories' ? 'Memories' : currentView === 'dataManager' ? 'Data Manager' : 'Petalytics')}</h2>
+							<p class="text-xs" style="color: var(--petalytics-subtle);">{selectedPet ? petSubtitle(selectedPet) : (currentView === 'memories' ? 'Archived memories' : currentView === 'dataManager' ? 'Backup, export, and import' : '')}</p>
 						</div>
 					</div>
 
-					{#if currentView === 'memories'}
+					{#if currentView === 'memories' || currentView === 'dataManager'}
 						<div class="flex space-x-2">
 							<button
 								on:click={() => {
@@ -280,6 +281,21 @@
 								</div>
 							{/each}
 						{/if}
+					</div>
+				{:else if currentView === 'dataManager'}
+					<!-- Data Manager full-width in right panel -->
+					<div class="space-y-4 font-mono">
+						<div class="rounded p-3" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);">
+							<div class="flex items-center justify-between">
+								<div>
+									<div class="text-base font-semibold" style="color: var(--petalytics-text);">Data Manager</div>
+									<div class="text-xs" style="color: var(--petalytics-subtle);">Backup, export, and import</div>
+								</div>
+							</div>
+						</div>
+						<div class="p-2 rounded" style="background: var(--petalytics-surface); border: 1px solid var(--petalytics-border);">
+							<DataManager />
+						</div>
 					</div>
 				{:else if currentView === 'dashboard' && selectedPet}
 					<!-- Dashboard View -->

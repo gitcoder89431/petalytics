@@ -1,21 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import DataManager from '../ui/DataManager.svelte';
 	import { ChevronLeft, ChevronRight, User, Key, Settings, CheckCircle, AlertCircle, Terminal } from 'lucide-svelte';
 	import { guardianHelpers } from '$lib/stores/guardian.js';
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
 	import { loadThemePreset, themePresets } from '$lib/stores/theme.js';
+	import { uiHelpers } from '$lib/stores/ui';
 
 	let apiKeyInput = '';
 	let guardianName = '';
-	let preferences = {
-		dailyReminders: false,
+	// Preferences trimmed to real features; remove unused reminders/notifications.
+	let preferences: { aiInsights: boolean } = {
 		aiInsights: true,
-		notifications: true,
 	};
 
 	let apiKeyStatus = 'unchecked'; // unchecked, checking, valid, invalid
-	let showDataManager = false;
 	
 	// CLI-style editing states
 	let editingField: string | null = null;
@@ -24,6 +22,43 @@
 	let themeIndex = 0;
 
 	const displayKey = (k: keyof typeof themePresets) => (k === 'tokyoNight' ? 'tokyo-night' : k);
+    
+	// OpenRouter model selection
+	const models = [
+		'anthropic/claude-3.5-sonnet',
+		'openai/gpt-4o-mini',
+		'google/gemini-1.5-pro',
+		'mistralai/mixtral-8x7b-instruct',
+	] as const;
+	let currentModelIndex = 0;
+
+	function loadModelFromStorage() {
+		const saved = guardianHelpers.load();
+		const savedModel = saved?.model as string | undefined;
+		if (savedModel) {
+			const idx = models.indexOf(savedModel as any);
+			currentModelIndex = idx >= 0 ? idx : 0;
+		} else {
+			currentModelIndex = 0;
+		}
+	}
+
+	function displayModel() {
+		return models[currentModelIndex] || models[0];
+	}
+
+	function persistModel() {
+		guardianHelpers.update({ model: displayModel() });
+	}
+
+	function cycleModel(dir: 'prev' | 'next') {
+		if (dir === 'next') {
+			currentModelIndex = (currentModelIndex + 1) % models.length;
+		} else {
+			currentModelIndex = (currentModelIndex - 1 + models.length) % models.length;
+		}
+		persistModel();
+	}
 
 		onMount(() => {
 		// Load saved guardian data
@@ -34,10 +69,13 @@
 			preferences = { ...preferences, ...saved.preferences };
 		}
 		
-		// Get current theme from localStorage
+	// Get current theme from localStorage
 		const savedTheme = (localStorage.getItem('petalytics-theme') as keyof typeof themePresets) || 'everforest';
 		currentThemeKey = themeKeys.includes(savedTheme) ? savedTheme : 'everforest';
 		themeIndex = themeKeys.indexOf(currentThemeKey);
+
+	// Get model selection from guardian storage
+	loadModelFromStorage();
 	});
 
 	function toggleTheme(direction: 'prev' | 'next') {
@@ -52,8 +90,9 @@
 	}
 
 	function togglePreference(key: keyof typeof preferences) {
-		preferences[key] = !preferences[key];
-		handlePreferenceChange(key);
+		// currently only ai_insights is supported
+		(preferences as any)[key] = !(preferences as any)[key];
+		saveGuardianInfo();
 	}
 
 	function startEdit(field: string) {
@@ -119,10 +158,7 @@
 		});
 	}
 
-	function handlePreferenceChange(key: keyof typeof preferences) {
-		preferences[key] = !preferences[key];
-		saveGuardianInfo();
-	}
+	// removed handlePreferenceChange; inline save in togglePreference
 
 	// Keyboard activate handler for elements with role="button"
 	function handleActivate(e: KeyboardEvent, action: () => void) {
@@ -194,57 +230,31 @@
 			</span>
 		</div>
 
+		<!-- Model selection (OpenRouter) -->
+		<div class="cli-row px-2 py-1">
+			<span class="label" style="color: var(--petalytics-foam);">model</span>
+			<span class="value" style="color: var(--petalytics-text);">{displayModel()}</span>
+			<div class="ml-2 flex items-center space-x-1">
+				<button type="button" class="arrow-btn" onclick={() => cycleModel('prev')} aria-label="Previous model">&lt;</button>
+				<button type="button" class="arrow-btn" onclick={() => cycleModel('next')} aria-label="Next model">&gt;</button>
+			</div>
+		</div>
+
 		<!-- Theme row -->
 		<div class="cli-row px-2 py-1">
 			<span class="label" style="color: var(--petalytics-foam);">theme</span>
-			<span class="value" style="color: var(--petalytics-text);">
-				{displayKey(currentThemeKey)}
-			</span>
+			<span class="value" style="color: var(--petalytics-text);">{displayKey(currentThemeKey)}</span>
 			<div class="ml-2 flex items-center space-x-1">
 				<button type="button" class="arrow-btn" onclick={() => toggleTheme('prev')} aria-label="Previous theme">&lt;</button>
 				<button type="button" class="arrow-btn" onclick={() => toggleTheme('next')} aria-label="Next theme">&gt;</button>
 			</div>
 		</div>
 
-		<!-- Separator line -->
-		<div class="my-3">
-			<div class="border-t" style="border-color: var(--petalytics-border);"></div>
-		</div>
-
-		<!-- Preferences section header -->
-		<div class="cli-row px-2 py-1">
-			<span style="color: var(--petalytics-subtle);">#</span>
-			<span class="ml-2" style="color: var(--petalytics-gold);">preferences</span>
-		</div>
-		
-		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-pressed={preferences.dailyReminders} onclick={() => togglePreference('dailyReminders')} onkeydown={(e) => handleActivate(e, () => togglePreference('dailyReminders'))}>
-			<span class="label" style="color: var(--petalytics-foam);">daily_reminders</span>
-			<span class="value" style="color: var(--petalytics-text);">
-				{preferences.dailyReminders ? 'enabled' : 'disabled'}
-			</span>
-			<span class="ml-2" style="color: {preferences.dailyReminders ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
-				{preferences.dailyReminders ? '●' : '○'}
-			</span>
-		</div>
-
+		<!-- Preferences: only ai_insights -->
 		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-pressed={preferences.aiInsights} onclick={() => togglePreference('aiInsights')} onkeydown={(e) => handleActivate(e, () => togglePreference('aiInsights'))}>
 			<span class="label" style="color: var(--petalytics-foam);">ai_insights</span>
-			<span class="value" style="color: var(--petalytics-text);">
-				{preferences.aiInsights ? 'enabled' : 'disabled'}
-			</span>
-			<span class="ml-2" style="color: {preferences.aiInsights ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
-				{preferences.aiInsights ? '●' : '○'}
-			</span>
-		</div>
-
-		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-pressed={preferences.notifications} onclick={() => togglePreference('notifications')} onkeydown={(e) => handleActivate(e, () => togglePreference('notifications'))}>
-			<span class="label" style="color: var(--petalytics-foam);">notifications</span>
-			<span class="value" style="color: var(--petalytics-text);">
-				{preferences.notifications ? 'enabled' : 'disabled'}
-			</span>
-			<span class="ml-2" style="color: {preferences.notifications ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
-				{preferences.notifications ? '●' : '○'}
-			</span>
+			<span class="value" style="color: var(--petalytics-text);">{preferences.aiInsights ? 'enabled' : 'disabled'}</span>
+			<span class="ml-2" style="color: {preferences.aiInsights ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">{preferences.aiInsights ? '●' : '○'}</span>
 		</div>
 
 		<!-- Separator line -->
@@ -252,38 +262,12 @@
 			<div class="border-t" style="border-color: var(--petalytics-border);"></div>
 		</div>
 
-		<!-- Status section header -->
-		<div class="cli-row px-2 py-1">
-			<span style="color: var(--petalytics-subtle);">#</span>
-			<span class="ml-2" style="color: var(--petalytics-gold);">status</span>
-		</div>
-		
-		<div class="cli-row flex items-center px-2 py-1">
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">api_status</span>
-			<span class="flex-1 text-right" style="color: {apiKeyStatus === 'valid' ? 'var(--petalytics-pine)' : apiKeyStatus === 'invalid' ? 'var(--petalytics-love)' : 'var(--petalytics-gold)'};">
-				{apiKeyStatus === 'valid' ? 'connected' : apiKeyStatus === 'invalid' ? 'invalid' : apiKeyStatus === 'checking' ? 'checking...' : 'not_set'}
-			</span>
-		</div>
-
-		<!-- Data management toggle -->
-		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-expanded={showDataManager} onclick={() => showDataManager = !showDataManager} onkeydown={(e) => handleActivate(e, () => (showDataManager = !showDataManager))}>
+		<!-- Data Manager launcher (opens in right panel) -->
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" onclick={() => uiHelpers.setView('dataManager')} onkeydown={(e) => handleActivate(e, () => uiHelpers.setView('dataManager'))}>
 			<span class="label" style="color: var(--petalytics-foam);">data_manager</span>
-			<span class="value" style="color: var(--petalytics-text);">
-				{showDataManager ? 'show' : 'hidden'}
-			</span>
-			<ChevronRight 
-				size={14} 
-				style="color: var(--petalytics-subtle); transform: {showDataManager ? 'rotate(90deg)' : 'rotate(0deg)'}; transition: transform 0.2s;" 
-				class="ml-2"
-			/>
+			<span class="value" style="color: var(--petalytics-text);">open</span>
+			<ChevronRight size={14} style="color: var(--petalytics-subtle);" class="ml-2" />
 		</div>
-
-		{#if showDataManager}
-			<div class="mt-2 p-2 rounded" style="background: var(--petalytics-overlay);">
-				<DataManager />
-			</div>
-		{/if}
 	</div>
 </div>
 

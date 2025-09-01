@@ -10,6 +10,7 @@ export interface Guardian {
 		relationship: string;
 	};
 	apiKey: string;
+	model?: string;
 	preferences: {
 		dailyReminders: boolean;
 		aiInsights: boolean;

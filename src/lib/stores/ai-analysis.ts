@@ -12,7 +12,7 @@ let analyzer: AIAnalyzer | null = null;
 // Initialize analyzer when API key is available
 guardianStore.subscribe((guardian) => {
 	if (guardian.apiKey && guardian.apiKeyValid) {
-		analyzer = new AIAnalyzer(guardian.apiKey);
+		analyzer = new AIAnalyzer(guardian.apiKey, (guardian as any).model || 'anthropic/claude-3.5-sonnet');
 	} else {
 		analyzer = null;
 	}
