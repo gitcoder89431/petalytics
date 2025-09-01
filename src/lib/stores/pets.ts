@@ -87,6 +87,23 @@ export const petHelpers = {
       foundPet = pets.find(pet => pet.id === petId) || null;
     })();
     return foundPet;
+  },
+
+  // Add journal entry to pet
+  addJournalEntry(petId: string, entry: any) {
+    petStore.update(pets => {
+      const updated = pets.map(pet => {
+        if (pet.id === petId) {
+          return {
+            ...pet,
+            journalEntries: [...pet.journalEntries, entry]
+          };
+        }
+        return pet;
+      });
+      this.save(updated);
+      return updated;
+    });
   }
 };
 
