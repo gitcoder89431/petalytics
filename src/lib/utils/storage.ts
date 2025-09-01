@@ -112,5 +112,18 @@ export const appStorage = {
 	
 	loadJournalEntries() {
 		return storage.get('petalytics_journal_entries', []);
+	},
+	
+	// Selected pet
+	saveSelectedPet(petId: string | null) {
+		if (petId) {
+			return storage.set('petalytics_selected_pet', petId);
+		} else {
+			return storage.remove('petalytics_selected_pet');
+		}
+	},
+	
+	loadSelectedPet() {
+		return storage.get('petalytics_selected_pet', null);
 	}
 };

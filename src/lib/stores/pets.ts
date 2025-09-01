@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
-import type { Pet, PetStats } from '../types/Pet.js';
+import type { Pet, PetStats, PetPanelData } from '../types/Pet.js';
+import { appStorage } from '../utils/storage.js';
 
 // Store for all pets
 export const pets = writable<Pet[]>([]);
@@ -12,6 +13,120 @@ export const petStats = writable<Map<string, PetStats>>(new Map());
 
 // Loading states
 export const isLoadingPets = writable(false);
+
+// Pet Panel specific stores
+export const petStore = writable<PetPanelData[]>([]);
+export const selectedPetStore = writable<string | null>(null);
+
+// Storage keys
+const STORAGE_KEY = 'petalytics_pets';
+const SELECTED_PET_KEY = 'petalytics_selected_pet';
+
+// Pet store helpers for panel
+export const petHelpers = {
+  // Load pets from localStorage
+  load() {
+    try {
+      const pets = appStorage.loadPets();
+      petStore.set(pets || []);
+      return pets || [];
+    } catch (error) {
+      console.error('Error loading pets:', error);
+      return [];
+    }
+  },
+
+  // Save pets to localStorage
+  save(pets: PetPanelData[]) {
+    try {
+      appStorage.savePets(pets);
+    } catch (error) {
+      console.error('Error saving pets:', error);
+    }
+  },
+
+  // Add new pet
+  add(pet: PetPanelData) {
+    petStore.update(pets => {
+      const updated = [...pets, pet];
+      this.save(updated);
+      return updated;
+    });
+  },
+
+  // Update existing pet
+  update(petId: string, updates: Partial<PetPanelData>) {
+    petStore.update(pets => {
+      const updated = pets.map(pet => 
+        pet.id === petId ? { ...pet, ...updates } : pet
+      );
+      this.save(updated);
+      return updated;
+    });
+  },
+
+  // Remove pet
+  remove(petId: string) {
+    petStore.update(pets => {
+      const updated = pets.filter(pet => pet.id !== petId);
+      this.save(updated);
+      
+      // Clear selection if removed pet was selected
+      selectedPetStore.update(selectedId => 
+        selectedId === petId ? null : selectedId
+      );
+      
+      return updated;
+    });
+  },
+
+  // Get pet by ID
+  getPet(petId: string): PetPanelData | null {
+    let foundPet: PetPanelData | null = null;
+    petStore.subscribe(pets => {
+      foundPet = pets.find(pet => pet.id === petId) || null;
+    })();
+    return foundPet;
+  }
+};
+
+// Selected pet helpers
+export const selectedPetHelpers = {
+  // Load selected pet from localStorage
+  load() {
+    try {
+      const saved = appStorage.loadSelectedPet();
+      if (saved) {
+        selectedPetStore.set(saved);
+        return saved;
+      }
+    } catch (error) {
+      console.error('Error loading selected pet:', error);
+    }
+    return null;
+  },
+
+  // Save selected pet to localStorage
+  save(petId: string | null) {
+    try {
+      appStorage.saveSelectedPet(petId);
+    } catch (error) {
+      console.error('Error saving selected pet:', error);
+    }
+  },
+
+  // Select pet
+  select(petId: string) {
+    selectedPetStore.set(petId);
+    this.save(petId);
+  },
+
+  // Clear selection
+  clear() {
+    selectedPetStore.set(null);
+    this.save(null);
+  }
+};
 
 // Actions
 export const petActions = {
@@ -35,3 +150,8 @@ export const petActions = {
 		console.log('Deleting pet:', id);
 	}
 };
+
+// Auto-save selected pet changes
+selectedPetStore.subscribe(petId => {
+  selectedPetHelpers.save(petId);
+});

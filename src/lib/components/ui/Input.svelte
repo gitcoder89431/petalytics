@@ -9,7 +9,6 @@
 		label?: string;
 		id?: string;
 		name?: string;
-		autocomplete?: string;
 		oninput?: (event: Event) => void;
 		onchange?: (event: Event) => void;
 		onblur?: (event: Event) => void;
@@ -25,7 +24,6 @@
 		label,
 		id,
 		name,
-		autocomplete,
 		oninput,
 		onchange,
 		onblur,
@@ -58,7 +56,6 @@
 		{disabled}
 		{required}
 		{name}
-		{autocomplete}
 		id={inputId}
 		class="{baseClasses} {hasError ? errorClasses : normalClasses} {disabled ? disabledClasses : ''}"
 		oninput={oninput}
