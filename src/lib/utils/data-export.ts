@@ -78,7 +78,7 @@ export class DataExporter {
 
       const validation = this.validateImportData(importData);
       if (!validation.valid) {
-        return { success: false, message: validation.error };
+        return { success: false, message: validation.error || 'Invalid data format' };
       }
 
       if (importData.pets) {
