@@ -33,20 +33,23 @@
 		lg: 'shadow-lg'
 	};
 
-	const borderClass = border ? 'border border-gray-200 dark:border-gray-700' : '';
-	const baseClasses = 'bg-white dark:bg-gray-800 rounded-lg';
+	const borderClass = border ? 'border' : '';
+	const baseClasses = 'rounded-lg';
 </script>
 
-<div class="{baseClasses} {paddingClasses[padding]} {shadowClasses[shadow]} {borderClass} {className}">
+<div 
+	class="{baseClasses} {paddingClasses[padding]} {shadowClasses[shadow]} {borderClass} {className}"
+	style="background: var(--petalytics-surface); border-color: var(--petalytics-border);"
+>
 	{#if title || description}
 		<div class="mb-4">
 			{#if title}
-				<h3 class="text-lg font-medium text-gray-900 dark:text-white">
+				<h3 class="text-lg font-medium" style="color: var(--petalytics-text);">
 					{title}
 				</h3>
 			{/if}
 			{#if description}
-				<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+				<p class="mt-1 text-sm" style="color: var(--petalytics-subtle);">
 					{description}
 				</p>
 			{/if}
