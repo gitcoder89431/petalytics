@@ -26,6 +26,72 @@
 	--petalytics-border: #3d484d;
 }
 
+/* Gruvbox Dark */
+.gruvbox {
+	--petalytics-bg: #282828;
+	--petalytics-fg: #ebdbb2;
+	--petalytics-surface: #3c3836;
+	--petalytics-overlay: #504945;
+	--petalytics-muted: #928374;
+	--petalytics-subtle: #a89984;
+	--petalytics-text: #ebdbb2;
+	--petalytics-love: #fb4934; /* red */
+	--petalytics-gold: #fabd2f; /* yellow */
+	--petalytics-rose: #d3869b; /* purple-ish */
+	--petalytics-pine: #b8bb26; /* green */
+	--petalytics-foam: #83a598; /* blue */
+	--petalytics-iris: #8ec07c; /* aqua */
+	--petalytics-highlight-low: #32302f;
+	--petalytics-highlight-med: #3c3836;
+	--petalytics-highlight-high: #504945;
+	--petalytics-accent: #b8bb26;
+	--petalytics-border: #504945;
+}
+
+/* Tokyo Night */
+.tokyo-night {
+	--petalytics-bg: #1a1b26;
+	--petalytics-fg: #c0caf5;
+	--petalytics-surface: #24283b;
+	--petalytics-overlay: #2f334d;
+	--petalytics-muted: #565f89;
+	--petalytics-subtle: #737aa2;
+	--petalytics-text: #c0caf5;
+	--petalytics-love: #f7768e; /* red */
+	--petalytics-gold: #e0af68; /* yellow */
+	--petalytics-rose: #bb9af7; /* magenta */
+	--petalytics-pine: #9ece6a; /* green */
+	--petalytics-foam: #7dcfff; /* cyan */
+	--petalytics-iris: #2ac3de; /* teal */
+	--petalytics-highlight-low: #1f2335;
+	--petalytics-highlight-med: #24283b;
+	--petalytics-highlight-high: #2f334d;
+	--petalytics-accent: #7dcfff;
+	--petalytics-border: #2f334d;
+}
+
+/* Nord */
+.nord {
+	--petalytics-bg: #2e3440;
+	--petalytics-fg: #d8dee9;
+	--petalytics-surface: #3b4252;
+	--petalytics-overlay: #434c5e;
+	--petalytics-muted: #4c566a;
+	--petalytics-subtle: #81a1c1;
+	--petalytics-text: #d8dee9;
+	--petalytics-love: #bf616a;
+	--petalytics-gold: #ebcb8b;
+	--petalytics-rose: #b48ead;
+	--petalytics-pine: #a3be8c;
+	--petalytics-foam: #88c0d0;
+	--petalytics-iris: #5e81ac;
+	--petalytics-highlight-low: #353b49;
+	--petalytics-highlight-med: #3b4252;
+	--petalytics-highlight-high: #434c5e;
+	--petalytics-accent: #88c0d0;
+	--petalytics-border: #434c5e;
+}
+
 html,
 body {
 	margin: 0;

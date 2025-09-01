@@ -123,6 +123,14 @@
 		preferences[key] = !preferences[key];
 		saveGuardianInfo();
 	}
+
+	// Keyboard activate handler for elements with role="button"
+	function handleActivate(e: KeyboardEvent, action: () => void) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			action();
+		}
+	}
 </script>
 
 <div class="guardian-panel h-full" style="background: var(--petalytics-bg);">
@@ -137,19 +145,17 @@
 	<div class="cli-content p-3 font-mono text-sm overflow-y-auto" style="color: var(--petalytics-text);">
 		
 		<!-- Guardian name row -->
-		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => startEdit('guardian')}>
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">guardian</span>
-			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" onclick={() => startEdit('guardian')} onkeydown={(e) => handleActivate(e, () => startEdit('guardian'))}>
+			<span class="label" style="color: var(--petalytics-foam);">guardian</span>
+			<span class="value" style="color: var(--petalytics-text);">
 				{#if editingField === 'guardian'}
 					<input
 						bind:value={guardianName}
-						on:blur={stopEdit}
-						on:keydown={(e) => handleKeydown(e, 'guardian')}
-						class="bg-transparent border-none outline-none w-full text-right"
+						onblur={stopEdit}
+						onkeydown={(e) => handleKeydown(e, 'guardian')}
+						class="bg-transparent border-none outline-none w-full text-right input-inline"
 						style="color: var(--petalytics-text);"
 						placeholder="Pet Guardian Name"
-						autofocus
 					/>
 				{:else}
 					{guardianName || 'Not set'}
@@ -158,20 +164,18 @@
 		</div>
 
 		<!-- API Key row -->
-		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => startEdit('apiKey')}>
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">api_key</span>
-			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" onclick={() => startEdit('apiKey')} onkeydown={(e) => handleActivate(e, () => startEdit('apiKey'))}>
+			<span class="label" style="color: var(--petalytics-foam);">api_key</span>
+			<span class="value" style="color: var(--petalytics-text);">
 				{#if editingField === 'apiKey'}
 					<input
 						type="password"
 						bind:value={apiKeyInput}
-						on:blur={stopEdit}
-						on:keydown={(e) => handleKeydown(e, 'apiKey')}
-						class="bg-transparent border-none outline-none w-full text-right"
+						onblur={stopEdit}
+						onkeydown={(e) => handleKeydown(e, 'apiKey')}
+						class="bg-transparent border-none outline-none w-full text-right input-inline"
 						style="color: var(--petalytics-text);"
 						placeholder="sk-or-..."
-						autofocus
 					/>
 				{:else}
 					{apiKeyInput ? `${apiKeyInput.slice(0, 8)}****` : 'Not set'}
@@ -191,19 +195,14 @@
 		</div>
 
 		<!-- Theme row -->
-		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors">
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">theme</span>
-			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+		<div class="cli-row px-2 py-1">
+			<span class="label" style="color: var(--petalytics-foam);">theme</span>
+			<span class="value" style="color: var(--petalytics-text);">
 				{currentTheme}
 			</span>
 			<div class="ml-2 flex items-center space-x-1">
-				<button on:click={() => toggleTheme('prev')} class="hover:opacity-70">
-					<ChevronLeft size={14} style="color: var(--petalytics-subtle);" />
-				</button>
-				<button on:click={() => toggleTheme('next')} class="hover:opacity-70">
-					<ChevronRight size={14} style="color: var(--petalytics-subtle);" />
-				</button>
+				<button type="button" class="arrow-btn" onclick={() => toggleTheme('prev')} aria-label="Previous theme">&lt;</button>
+				<button type="button" class="arrow-btn" onclick={() => toggleTheme('next')} aria-label="Next theme">&gt;</button>
 			</div>
 		</div>
 
@@ -213,15 +212,14 @@
 		</div>
 
 		<!-- Preferences section header -->
-		<div class="cli-row flex items-center px-2 py-1">
+		<div class="cli-row px-2 py-1">
 			<span style="color: var(--petalytics-subtle);">#</span>
 			<span class="ml-2" style="color: var(--petalytics-gold);">preferences</span>
 		</div>
 		
-		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('dailyReminders')}>
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">daily_reminders</span>
-			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-pressed={preferences.dailyReminders} onclick={() => togglePreference('dailyReminders')} onkeydown={(e) => handleActivate(e, () => togglePreference('dailyReminders'))}>
+			<span class="label" style="color: var(--petalytics-foam);">daily_reminders</span>
+			<span class="value" style="color: var(--petalytics-text);">
 				{preferences.dailyReminders ? 'enabled' : 'disabled'}
 			</span>
 			<span class="ml-2" style="color: {preferences.dailyReminders ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
@@ -229,10 +227,9 @@
 			</span>
 		</div>
 
-		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('aiInsights')}>
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">ai_insights</span>
-			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-pressed={preferences.aiInsights} onclick={() => togglePreference('aiInsights')} onkeydown={(e) => handleActivate(e, () => togglePreference('aiInsights'))}>
+			<span class="label" style="color: var(--petalytics-foam);">ai_insights</span>
+			<span class="value" style="color: var(--petalytics-text);">
 				{preferences.aiInsights ? 'enabled' : 'disabled'}
 			</span>
 			<span class="ml-2" style="color: {preferences.aiInsights ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
@@ -240,10 +237,9 @@
 			</span>
 		</div>
 
-		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('notifications')}>
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">notifications</span>
-			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-pressed={preferences.notifications} onclick={() => togglePreference('notifications')} onkeydown={(e) => handleActivate(e, () => togglePreference('notifications'))}>
+			<span class="label" style="color: var(--petalytics-foam);">notifications</span>
+			<span class="value" style="color: var(--petalytics-text);">
 				{preferences.notifications ? 'enabled' : 'disabled'}
 			</span>
 			<span class="ml-2" style="color: {preferences.notifications ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
@@ -257,7 +253,7 @@
 		</div>
 
 		<!-- Status section header -->
-		<div class="cli-row flex items-center px-2 py-1">
+		<div class="cli-row px-2 py-1">
 			<span style="color: var(--petalytics-subtle);">#</span>
 			<span class="ml-2" style="color: var(--petalytics-gold);">status</span>
 		</div>
@@ -271,10 +267,9 @@
 		</div>
 
 		<!-- Data management toggle -->
-		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => showDataManager = !showDataManager}>
-			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">data_manager</span>
-			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-expanded={showDataManager} onclick={() => showDataManager = !showDataManager} onkeydown={(e) => handleActivate(e, () => (showDataManager = !showDataManager))}>
+			<span class="label" style="color: var(--petalytics-foam);">data_manager</span>
+			<span class="value" style="color: var(--petalytics-text);">
 				{showDataManager ? 'show' : 'hidden'}
 			</span>
 			<ChevronRight 
@@ -291,3 +286,64 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+/* Alacritty-inspired interactive rows */
+.cli-row {
+	display: flex;
+	align-items: center;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+.cli-row[role="button"] {
+	cursor: pointer;
+}
+.cli-row:hover {
+	background: var(--petalytics-highlight-low);
+	border-color: var(--petalytics-border);
+}
+.cli-row:focus-within,
+.cli-row[role="button"]:focus-visible {
+	outline: none;
+	background: var(--petalytics-highlight-med);
+	border-color: var(--petalytics-accent);
+	box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 40%, transparent);
+}
+.cli-row[aria-pressed="true"],
+.cli-row[aria-expanded="true"] {
+	background: var(--petalytics-highlight-high);
+	border-color: var(--petalytics-accent);
+}
+.label {
+	color: var(--petalytics-foam);
+}
+.value {
+	margin-left: auto;
+	text-align: right;
+	flex: 1 1 auto;
+}
+.input-inline {
+	padding: 0;
+}
+.arrow-btn {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 0.85rem;
+	line-height: 1rem;
+	background: transparent;
+	border: 1px solid var(--petalytics-border);
+	color: var(--petalytics-subtle);
+	padding: 0.15rem 0.4rem;
+	border-radius: 4px;
+	cursor: pointer;
+}
+.arrow-btn:hover {
+	background: var(--petalytics-highlight-low);
+	color: var(--petalytics-text);
+}
+.arrow-btn:focus-visible {
+	outline: none;
+	border-color: var(--petalytics-accent);
+	box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 35%, transparent);
+}
+</style>

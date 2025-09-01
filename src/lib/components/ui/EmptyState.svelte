@@ -44,7 +44,7 @@
 	
 	{#if actionText && onAction}
 		<button 
-			on:click={onAction}
+			onclick={onAction}
 			class="button flex items-center space-x-2 mx-auto"
 		>
 			<IconComponent size={16} />
