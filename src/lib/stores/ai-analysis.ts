@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 import { AIAnalyzer, type AnalysisResult } from '$lib/utils/ai-analysis';
 import { guardianStore } from './guardian';
-import type { Pet } from '../types/Pet';
+import type { PetPanelData } from '../types/Pet';
 import type { JournalEntry } from '../types/JournalEntry';
 
 export const analysisStore = writable<Record<string, AnalysisResult>>({});
@@ -19,7 +19,7 @@ guardianStore.subscribe((guardian) => {
 });
 
 export const aiAnalysisHelpers = {
-	async analyzeEntry(pet: Pet, entry: JournalEntry): Promise<AnalysisResult | null> {
+	async analyzeEntry(pet: PetPanelData, entry: JournalEntry): Promise<AnalysisResult | null> {
 		if (!analyzer) {
 			throw new Error('API key not configured');
 		}

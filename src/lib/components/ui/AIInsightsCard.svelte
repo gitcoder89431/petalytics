@@ -1,12 +1,14 @@
-<script>
+<script lang="ts">
 	import { Brain, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-svelte';
 	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis';
+	import type { AnalysisResult } from '$lib/utils/ai-analysis';
 
 	export let entryId = '';
-	export const petId = '';
+	// eslint-disable-next-line svelte/valid-compile
+	export let petId = '';
 	export let compact = false;
 
-	let analysis = null;
+	let analysis: AnalysisResult | null = null;
 
 	$: if (entryId) {
 		analysis = aiAnalysisHelpers.getAnalysis(entryId);

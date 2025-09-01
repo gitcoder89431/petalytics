@@ -1,11 +1,13 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
 	import { aiAnalysisHelpers, isAnalyzing } from '$lib/stores/ai-analysis';
 	import { PenTool, Brain, Calendar, Heart, Activity } from 'lucide-svelte';
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
+	import type { PetPanelData } from '$lib/types/Pet';
+	import type { JournalEntry } from '$lib/types/JournalEntry';
 
-	let selectedPet = null;
+	let selectedPet: PetPanelData | null = null;
 	let currentView = 'dashboard'; // dashboard, journal, history
 	let journalInput = '';
 	let selectedMood = '';
@@ -28,13 +30,17 @@
 		isSubmitting = true;
 
 		try {
-			const entry = {
+			const now = new Date();
+			const entry: JournalEntry = {
 				id: Date.now().toString(),
 				petId: selectedPet.id,
+				type: 'general',
+				title: `Journal Entry - ${now.toLocaleDateString()}`,
 				content: journalInput.trim(),
-				date: new Date().toISOString(),
-				mood: selectedMood || 'unknown',
-				activityLevel: selectedActivity || 'normal',
+				date: now,
+				mood: (selectedMood as JournalEntry['mood']) || 'neutral',
+				createdAt: now,
+				updatedAt: now,
 			};
 
 			// Add entry to pet

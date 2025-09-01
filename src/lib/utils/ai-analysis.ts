@@ -1,4 +1,4 @@
-import type { Pet } from '../types/Pet.js';
+import type { PetPanelData } from '../types/Pet.js';
 import type { JournalEntry } from '../types/JournalEntry.js';
 
 export interface AnalysisResult {
@@ -18,7 +18,7 @@ export class AIAnalyzer {
 		this.apiKey = apiKey;
 	}
 
-	async analyzeJournalEntry(pet: Pet, entry: JournalEntry): Promise<AnalysisResult> {
+	async analyzeJournalEntry(pet: PetPanelData, entry: JournalEntry): Promise<AnalysisResult> {
 		const prompt = this.buildAnalysisPrompt(pet, entry);
 
 		try {
@@ -60,15 +60,15 @@ export class AIAnalyzer {
 		}
 	}
 
-	private buildAnalysisPrompt(pet: Pet, entry: JournalEntry): string {
+	private buildAnalysisPrompt(pet: PetPanelData, entry: JournalEntry): string {
 		const recentEntries =
 			pet.journalEntries
 				?.slice(-5)
-				.map((e: JournalEntry) => `${e.date}: ${e.content}`)
+				.map((e) => `${e.date}: ${e.content}`)
 				.join('\n') || 'No previous entries available';
 
 		return `
-Analyze this journal entry for ${pet.name}, a ${pet.age || 'unknown age'}-year-old ${pet.breed || pet.species}:
+Analyze this journal entry for ${pet.name}, a ${pet.age || 'unknown age'}-year-old ${pet.breed}:
 
 LATEST ENTRY: "${entry.content}"
 
@@ -76,8 +76,8 @@ RECENT HISTORY:
 ${recentEntries}
 
 PET INFO:
-- Breed: ${pet.breed || pet.species}
-- Age: ${pet.age || 'unknown'} years  
+- Breed: ${pet.breed}
+- Age: ${pet.age || 'unknown'} years
 - Gender: ${pet.gender || 'unknown'}
 
 Please provide analysis in this JSON format:
