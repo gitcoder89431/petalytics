@@ -4,7 +4,6 @@
 	import type { AnalysisResult } from '$lib/utils/ai-analysis';
 
 	export let entryId = '';
-	// eslint-disable-next-line svelte/valid-compile
 	export let petId = '';
 	export let compact = false;
 
@@ -16,7 +15,7 @@
 </script>
 
 {#if analysis}
-	<div class="ai-insights" class:compact>
+	<div class="ai-insights" class:compact data-pet-id={petId}>
 		{#if !compact}
 			<div class="flex items-center space-x-2 mb-3">
 				<Brain size={16} style="color: var(--petalytics-accent);" />
@@ -78,9 +77,9 @@
 				</div>
 			{/if}
 		</div>
-	</div>
+  	</div>
 {:else}
-	<div class="no-analysis text-xs" style="color: var(--petalytics-muted);">
+	<div class="no-analysis text-xs" style="color: var(--petalytics-muted);" data-pet-id={petId}>
 		AI analysis pending...
 	</div>
 {/if}

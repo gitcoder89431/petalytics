@@ -106,6 +106,8 @@ body {
 	font-family: 'JetBrains Mono', monospace;
 }
 
+/* (Removed global app scaling to restore 100% size) */
+
 /* Panel styles */
 .panel {
 	background: var(--petalytics-surface);

@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Plus, Heart, ArrowLeft, Upload } from 'lucide-svelte';
+	import { Upload, Terminal } from 'lucide-svelte';
 	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets.js';
-	import { fade } from 'svelte/transition';
 	import type { PetPanelData } from '$lib/types/Pet.js';
 
 	let pets: PetPanelData[] = [];
@@ -54,7 +53,6 @@
 		const file = target.files?.[0];
 		if (file) {
 			if (file.size > 5 * 1024 * 1024) {
-				// 5MB limit
 				formErrors.image = 'Image must be less than 5MB';
 				return;
 			}
@@ -113,209 +111,134 @@
 	function selectPet(petId: string) {
 		selectedPetHelpers.select(petId);
 	}
+
+	function handleActivate(e: KeyboardEvent, action: () => void) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			action();
+		}
+	}
 </script>
 
-<div class="panel-container h-full flex flex-col">
-	<div class="panel-header">
-		<div class="flex items-center justify-between">
-			<div class="flex items-center space-x-2">
-				{#if showCreateForm}
-					<button on:click={toggleCreateForm} class="p-1 hover:opacity-70 transition-opacity">
-						<ArrowLeft size={16} style="color: var(--petalytics-accent);" />
-					</button>
-				{:else}
-					<Heart size={18} style="color: var(--petalytics-accent);" />
-				{/if}
-				<h2 class="text-lg font-semibold">
-					{showCreateForm ? 'Add New Pet' : 'Your Pets'}
-				</h2>
-			</div>
-			{#if !showCreateForm}
-				<button
-					on:click={toggleCreateForm}
-					class="flex items-center space-x-1 px-2 py-1 rounded-md button-secondary"
-				>
-					<Plus size={16} />
-					<span class="text-sm">Add</span>
-				</button>
-			{/if}
+<div class="pet-panel h-full" style="background: var(--petalytics-bg);">
+	<div class="cli-header p-3 border-b font-mono text-sm" style="border-color: var(--petalytics-border); background: var(--petalytics-surface);">
+		<div class="flex items-center space-x-2" style="color: var(--petalytics-pine);">
+			<Terminal size={14} />
+			<span>pets@petalytics:~$</span>
 		</div>
 	</div>
 
-	<div class="panel-content flex-1 p-4 overflow-y-auto">
+	<div class="cli-content p-3 font-mono text-sm overflow-y-auto" style="color: var(--petalytics-text);">
+		<!-- Toggle create form -->
+		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-expanded={showCreateForm} onclick={toggleCreateForm} onkeydown={(e) => handleActivate(e, toggleCreateForm)}>
+			<span class="label">add_pet</span>
+			<span class="value">{showCreateForm ? 'show' : 'hidden'}</span>
+		</div>
+
 		{#if showCreateForm}
-			<!-- Pet Creation Form -->
-			<div class="create-form space-y-4" transition:fade={{ duration: 200 }}>
-				<!-- Profile Image Upload -->
-				<div class="section">
-					<label
-						for="pet-profile-image"
-						class="block text-sm font-medium mb-2"
-						style="color: var(--petalytics-subtle);"
-					>
-						Profile Photo
-					</label>
-					<div class="flex flex-col items-center space-y-3">
-						{#if newPet.profileImageUrl}
-							<img
-								src={newPet.profileImageUrl}
-								alt="Pet preview"
-								class="w-24 h-24 rounded-full object-cover border-2"
-								style="border-color: var(--petalytics-border);"
-							/>
-						{:else}
-							<div
-								class="w-24 h-24 rounded-full border-2 border-dashed flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
-								style="border-color: var(--petalytics-border);"
-								on:click={() => imageInput.click()}
-								on:keydown={(e) => e.key === 'Enter' && imageInput.click()}
-								role="button"
-								tabindex="0"
-							>
-								<Upload size={24} style="color: var(--petalytics-subtle);" />
-							</div>
-						{/if}
-						<input
-							id="pet-profile-image"
-							bind:this={imageInput}
-							type="file"
-							accept="image/*"
-							on:change={handleImageUpload}
-							class="hidden"
-						/>
-						{#if formErrors.image}
-							<p class="text-sm text-red-400">{formErrors.image}</p>
-						{/if}
-					</div>
+			<div class="mt-2 p-2 rounded" style="background: var(--petalytics-overlay);">
+				<!-- name -->
+				<div class="cli-row px-2 py-1">
+					<span class="label">name</span>
+					<input class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.name} placeholder="Pet Name" />
 				</div>
-
-				<!-- Pet Name -->
-				<div class="section">
-					<input type="text" bind:value={newPet.name} class="input w-full" placeholder="Pet Name" />
-					{#if formErrors.name}
-						<p class="text-sm text-red-400 mt-1">{formErrors.name}</p>
-					{/if}
-				</div>
-
-				<!-- Breed -->
-				<div class="section">
-					<input type="text" bind:value={newPet.breed} class="input w-full" placeholder="Breed" />
-					{#if formErrors.breed}
-						<p class="text-sm text-red-400 mt-1">{formErrors.breed}</p>
-					{/if}
-				</div>
-
-				<!-- Age and Gender -->
-				<div class="grid grid-cols-2 gap-3">
-					<div>
-						<input
-							type="number"
-							bind:value={newPet.age}
-							class="input w-full"
-							placeholder="Age"
-							min="0"
-							max="30"
-						/>
-						{#if formErrors.age}
-							<p class="text-xs text-red-400 mt-1">{formErrors.age}</p>
-						{/if}
-					</div>
-
-					<div>
-						<select bind:value={newPet.gender} class="input w-full">
-							<option value="">Gender</option>
-							<option value="male">Male</option>
-							<option value="female">Female</option>
-						</select>
-						{#if formErrors.gender}
-							<p class="text-xs text-red-400 mt-1">{formErrors.gender}</p>
-						{/if}
-					</div>
-				</div>
-
-				<!-- Form Actions -->
-				<div class="flex space-x-3 pt-4">
-					<button on:click={createPet} class="button flex-1">Create Pet</button>
-					<button on:click={toggleCreateForm} class="button-secondary flex-1">Cancel</button>
-				</div>
-			</div>
-		{:else}
-			<!-- Pet Grid -->
-			<div class="pets-grid">
-				{#if pets.length === 0}
-					<div class="empty-state text-center py-8">
-						<Heart size={48} style="color: var(--petalytics-subtle); margin: 0 auto 1rem;" />
-						<p class="text-lg font-medium mb-2" style="color: var(--petalytics-text);">
-							No pets yet
-						</p>
-						<p class="text-sm mb-4" style="color: var(--petalytics-subtle);">
-							Add your first pet to get started with tracking their journal
-						</p>
-						<button on:click={toggleCreateForm} class="button">Add Your First Pet</button>
-					</div>
-				{:else}
-					<div class="grid grid-cols-2 gap-3">
-						{#each pets as pet}
-							<div
-								class="pet-card p-3 rounded-lg border cursor-pointer transition-all hover:opacity-80"
-								class:selected={selectedPetId === pet.id}
-								style="
-                  background: var(--petalytics-surface);
-                  border-color: {selectedPetId === pet.id
-									? 'var(--petalytics-accent)'
-									: 'var(--petalytics-border)'};
-                "
-								on:click={() => selectPet(pet.id)}
-								on:keydown={(e) => e.key === 'Enter' && selectPet(pet.id)}
-								role="button"
-								tabindex="0"
-							>
-								<div class="flex flex-col items-center space-y-2">
-									<img
-										src={pet.profileImageUrl || '/images/default-pet.png'}
-										alt={pet.name}
-										class="w-16 h-16 rounded-full object-cover"
-									/>
-									<div class="text-center">
-										<p class="font-medium text-sm truncate" style="color: var(--petalytics-text);">
-											{pet.name}
-										</p>
-										<p class="text-xs truncate" style="color: var(--petalytics-subtle);">
-											{pet.breed}
-										</p>
-										<p class="text-xs" style="color: var(--petalytics-subtle);">
-											{pet.age}
-											{pet.age === 1 ? 'year' : 'years'} old
-										</p>
-									</div>
-								</div>
-							</div>
-						{/each}
-					</div>
+				{#if formErrors.name}
+					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.name}</p>
 				{/if}
+
+				<!-- breed -->
+				<div class="cli-row px-2 py-1">
+					<span class="label">breed</span>
+					<input class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.breed} placeholder="Breed" />
+				</div>
+				{#if formErrors.breed}
+					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.breed}</p>
+				{/if}
+
+				<!-- age -->
+				<div class="cli-row px-2 py-1">
+					<span class="label">age</span>
+					<input class="value bg-transparent border-none outline-none input-inline" type="number" min="0" max="30" bind:value={newPet.age} placeholder="Age" />
+				</div>
+				{#if formErrors.age}
+					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.age}</p>
+				{/if}
+
+				<!-- gender -->
+				<div class="cli-row px-2 py-1">
+					<span class="label">gender</span>
+					<select class="value bg-transparent border-none outline-none input-inline" bind:value={newPet.gender}>
+						<option value="">Select gender</option>
+						<option value="male">male</option>
+						<option value="female">female</option>
+					</select>
+				</div>
+				{#if formErrors.gender}
+					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.gender}</p>
+				{/if}
+
+				<!-- profile image upload -->
+				<div class="cli-row px-2 py-1" style="align-items: flex-start;">
+					<span class="label">profile_image</span>
+					<div class="value flex items-center justify-end gap-2">
+						{#if newPet.profileImageUrl}
+							<img src={newPet.profileImageUrl} alt="preview" class="w-10 h-10 rounded-full object-cover border" style="border-color: var(--petalytics-border);" />
+						{/if}
+						<button type="button" class="arrow-btn" onclick={() => imageInput.click()}>upload</button>
+						<input id="pet-profile-image" bind:this={imageInput} type="file" accept="image/*" onchange={handleImageUpload} class="hidden" />
+					</div>
+				</div>
+				{#if formErrors.image}
+					<p class="px-2 text-xs" style="color: var(--petalytics-love);">{formErrors.image}</p>
+				{/if}
+
+				<div class="flex gap-2 px-2 pt-2">
+					<button class="button flex-1" type="button" onclick={createPet}>create</button>
+					<button class="button-secondary flex-1" type="button" onclick={toggleCreateForm}>cancel</button>
+				</div>
 			</div>
+		{/if}
+
+		<!-- Separator -->
+		<div class="my-3"><div class="border-t" style="border-color: var(--petalytics-border);"></div></div>
+
+		<!-- Pets list -->
+		<div class="cli-row px-2 py-1">
+			<span style="color: var(--petalytics-subtle);">#</span>
+			<span class="ml-2" style="color: var(--petalytics-gold);">pets</span>
+		</div>
+
+		{#if pets.length === 0}
+			<div class="px-2 py-4" style="color: var(--petalytics-subtle);">no pets yet — use add_pet to create one</div>
+		{:else}
+					{#each pets as pet}
+						<div class="cli-row px-2 py-1" role="button" tabindex="0" data-selected={selectedPetId === pet.id} onclick={() => selectPet(pet.id)} onkeydown={(e) => handleActivate(e, () => selectPet(pet.id))}>
+					<span class="label" style="color: var(--petalytics-text);">{pet.name}</span>
+					<span class="value" style="color: var(--petalytics-subtle);">
+						{pet.breed} | {pet.age}{pet.age === 1 ? 'y' : 'y'}
+					</span>
+				</div>
+			{/each}
 		{/if}
 	</div>
 </div>
 
 <style>
-	.pet-card.selected {
-		box-shadow: 0 0 0 2px var(--petalytics-accent);
-	}
-
-	.panel-header {
-		background: var(--petalytics-overlay);
-		border-bottom: 1px solid var(--petalytics-border);
-		padding: 0.75rem 1rem;
-		font-weight: 500;
-		color: var(--petalytics-text);
-	}
-
-	.panel-content {
-		background: var(--petalytics-surface);
-	}
-
-	.section {
-		margin-bottom: 1rem;
-	}
+.cli-row {
+	display: flex;
+	align-items: center;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+.cli-row[role="button"] { cursor: pointer; }
+.cli-row:hover { background: var(--petalytics-highlight-low); border-color: var(--petalytics-border); }
+.cli-row:focus-within, .cli-row[role="button"]:focus-visible { outline: none; background: var(--petalytics-highlight-med); border-color: var(--petalytics-accent); box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 40%, transparent); }
+.cli-row[data-selected="true"], .cli-row[aria-expanded="true"] { background: var(--petalytics-highlight-high); border-color: var(--petalytics-accent); }
+.label { color: var(--petalytics-foam); }
+.value { margin-left: auto; text-align: right; flex: 1 1 auto; }
+.input-inline { padding: 0; }
+.arrow-btn { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1rem; background: transparent; border: 1px solid var(--petalytics-border); color: var(--petalytics-subtle); padding: 0.15rem 0.5rem; border-radius: 4px; cursor: pointer; }
+.arrow-btn:hover { background: var(--petalytics-highlight-low); color: var(--petalytics-text); }
+.arrow-btn:focus-visible { outline: none; border-color: var(--petalytics-accent); box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 35%, transparent); }
 </style>

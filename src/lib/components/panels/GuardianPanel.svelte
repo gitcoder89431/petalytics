@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import ThemeSelector from '../ui/ThemeSelector.svelte';
 	import DataManager from '../ui/DataManager.svelte';
 	import { ChevronLeft, ChevronRight, User, Key, Settings, CheckCircle, AlertCircle, Terminal } from 'lucide-svelte';
 	import { guardianHelpers } from '$lib/stores/guardian.js';
