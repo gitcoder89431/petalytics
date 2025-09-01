@@ -61,9 +61,10 @@
 	}
 
 	function stopEdit() {
+		const field = editingField;
 		editingField = null;
 		saveGuardianInfo();
-		if (editingField === 'apiKey') {
+		if (field === 'apiKey') {
 			validateApiKey();
 		}
 	}
@@ -133,50 +134,50 @@
 		</div>
 	</div>
 
-	<div class="cli-content p-3 space-y-1 font-mono text-sm overflow-y-auto" style="color: var(--petalytics-text);">
+	<div class="cli-content p-3 font-mono text-sm overflow-y-auto" style="color: var(--petalytics-text);">
 		
 		<!-- Guardian name row -->
-		<div class="cli-row flex items-center space-x-2 hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => startEdit('guardian')}>
+		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => startEdit('guardian')}>
 			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">guardian:</span>
-			{#if editingField === 'guardian'}
-				<input
-					bind:value={guardianName}
-					on:blur={stopEdit}
-					on:keydown={(e) => handleKeydown(e, 'guardian')}
-					class="bg-transparent border-none outline-none flex-1"
-					style="color: var(--petalytics-text);"
-					placeholder="Pet Guardian Name"
-					autofocus
-				/>
-			{:else}
-				<span class="flex-1" style="color: var(--petalytics-text);">
+			<span style="color: var(--petalytics-foam);">guardian</span>
+			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+				{#if editingField === 'guardian'}
+					<input
+						bind:value={guardianName}
+						on:blur={stopEdit}
+						on:keydown={(e) => handleKeydown(e, 'guardian')}
+						class="bg-transparent border-none outline-none w-full text-right"
+						style="color: var(--petalytics-text);"
+						placeholder="Pet Guardian Name"
+						autofocus
+					/>
+				{:else}
 					{guardianName || 'Not set'}
-				</span>
-			{/if}
+				{/if}
+			</span>
 		</div>
 
 		<!-- API Key row -->
-		<div class="cli-row flex items-center space-x-2 hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => startEdit('apiKey')}>
+		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => startEdit('apiKey')}>
 			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">api_key:</span>
-			{#if editingField === 'apiKey'}
-				<input
-					type="password"
-					bind:value={apiKeyInput}
-					on:blur={stopEdit}
-					on:keydown={(e) => handleKeydown(e, 'apiKey')}
-					class="bg-transparent border-none outline-none flex-1"
-					style="color: var(--petalytics-text);"
-					placeholder="sk-or-..."
-					autofocus
-				/>
-			{:else}
-				<span class="flex-1" style="color: var(--petalytics-text);">
+			<span style="color: var(--petalytics-foam);">api_key</span>
+			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+				{#if editingField === 'apiKey'}
+					<input
+						type="password"
+						bind:value={apiKeyInput}
+						on:blur={stopEdit}
+						on:keydown={(e) => handleKeydown(e, 'apiKey')}
+						class="bg-transparent border-none outline-none w-full text-right"
+						style="color: var(--petalytics-text);"
+						placeholder="sk-or-..."
+						autofocus
+					/>
+				{:else}
 					{apiKeyInput ? `${apiKeyInput.slice(0, 8)}****` : 'Not set'}
-				</span>
-			{/if}
-			<div class="flex items-center">
+				{/if}
+			</span>
+			<span class="ml-2">
 				{#if apiKeyStatus === 'checking'}
 					<span style="color: var(--petalytics-gold);">●</span>
 				{:else if apiKeyStatus === 'valid'}
@@ -186,94 +187,101 @@
 				{:else}
 					<span style="color: var(--petalytics-subtle);">○</span>
 				{/if}
-			</div>
+			</span>
 		</div>
 
 		<!-- Theme row -->
-		<div class="cli-row flex items-center space-x-2 hover:bg-gray-800/20 px-2 py-1 rounded transition-colors">
+		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors">
 			<span style="color: var(--petalytics-subtle);">></span>
-			<span style="color: var(--petalytics-foam);">theme:</span>
-			<button on:click={() => toggleTheme('prev')} class="hover:opacity-70">
-				<ChevronLeft size={14} style="color: var(--petalytics-subtle);" />
-			</button>
-			<span class="flex-1" style="color: var(--petalytics-text);">
+			<span style="color: var(--petalytics-foam);">theme</span>
+			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
 				{currentTheme}
 			</span>
-			<button on:click={() => toggleTheme('next')} class="hover:opacity-70">
-				<ChevronRight size={14} style="color: var(--petalytics-subtle);" />
-			</button>
-		</div>
-
-		<!-- Preferences section -->
-		<div class="cli-section mt-4">
-			<div class="cli-row flex items-center space-x-2 px-2 py-1">
-				<span style="color: var(--petalytics-subtle);">#</span>
-				<span style="color: var(--petalytics-gold);">preferences</span>
-			</div>
-			
-			<div class="cli-row flex items-center space-x-2 hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('dailyReminders')}>
-				<span style="color: var(--petalytics-subtle);">></span>
-				<span style="color: var(--petalytics-foam);">daily_reminders:</span>
-				<span style="color: var(--petalytics-text);">
-					{preferences.dailyReminders ? 'enabled' : 'disabled'}
-				</span>
-				<span style="color: {preferences.dailyReminders ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
-					{preferences.dailyReminders ? '●' : '○'}
-				</span>
-			</div>
-
-			<div class="cli-row flex items-center space-x-2 hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('aiInsights')}>
-				<span style="color: var(--petalytics-subtle);">></span>
-				<span style="color: var(--petalytics-foam);">ai_insights:</span>
-				<span style="color: var(--petalytics-text);">
-					{preferences.aiInsights ? 'enabled' : 'disabled'}
-				</span>
-				<span style="color: {preferences.aiInsights ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
-					{preferences.aiInsights ? '●' : '○'}
-				</span>
-			</div>
-
-			<div class="cli-row flex items-center space-x-2 hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('notifications')}>
-				<span style="color: var(--petalytics-subtle);">></span>
-				<span style="color: var(--petalytics-foam);">notifications:</span>
-				<span style="color: var(--petalytics-text);">
-					{preferences.notifications ? 'enabled' : 'disabled'}
-				</span>
-				<span style="color: {preferences.notifications ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
-					{preferences.notifications ? '●' : '○'}
-				</span>
+			<div class="ml-2 flex items-center space-x-1">
+				<button on:click={() => toggleTheme('prev')} class="hover:opacity-70">
+					<ChevronLeft size={14} style="color: var(--petalytics-subtle);" />
+				</button>
+				<button on:click={() => toggleTheme('next')} class="hover:opacity-70">
+					<ChevronRight size={14} style="color: var(--petalytics-subtle);" />
+				</button>
 			</div>
 		</div>
 
-		<!-- Status section -->
-		<div class="cli-section mt-4">
-			<div class="cli-row flex items-center space-x-2 px-2 py-1">
-				<span style="color: var(--petalytics-subtle);">#</span>
-				<span style="color: var(--petalytics-gold);">status</span>
-			</div>
-			
-			<div class="cli-row flex items-center space-x-2 px-2 py-1">
-				<span style="color: var(--petalytics-subtle);">></span>
-				<span style="color: var(--petalytics-foam);">api_status:</span>
-				<span style="color: {apiKeyStatus === 'valid' ? 'var(--petalytics-pine)' : apiKeyStatus === 'invalid' ? 'var(--petalytics-love)' : 'var(--petalytics-gold)'};">
-					{apiKeyStatus === 'valid' ? 'connected' : apiKeyStatus === 'invalid' ? 'invalid' : apiKeyStatus === 'checking' ? 'checking...' : 'not_set'}
-				</span>
-			</div>
+		<!-- Separator line -->
+		<div class="my-3">
+			<div class="border-t" style="border-color: var(--petalytics-border);"></div>
+		</div>
+
+		<!-- Preferences section header -->
+		<div class="cli-row flex items-center px-2 py-1">
+			<span style="color: var(--petalytics-subtle);">#</span>
+			<span class="ml-2" style="color: var(--petalytics-gold);">preferences</span>
+		</div>
+		
+		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('dailyReminders')}>
+			<span style="color: var(--petalytics-subtle);">></span>
+			<span style="color: var(--petalytics-foam);">daily_reminders</span>
+			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+				{preferences.dailyReminders ? 'enabled' : 'disabled'}
+			</span>
+			<span class="ml-2" style="color: {preferences.dailyReminders ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
+				{preferences.dailyReminders ? '●' : '○'}
+			</span>
+		</div>
+
+		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('aiInsights')}>
+			<span style="color: var(--petalytics-subtle);">></span>
+			<span style="color: var(--petalytics-foam);">ai_insights</span>
+			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+				{preferences.aiInsights ? 'enabled' : 'disabled'}
+			</span>
+			<span class="ml-2" style="color: {preferences.aiInsights ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
+				{preferences.aiInsights ? '●' : '○'}
+			</span>
+		</div>
+
+		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => togglePreference('notifications')}>
+			<span style="color: var(--petalytics-subtle);">></span>
+			<span style="color: var(--petalytics-foam);">notifications</span>
+			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+				{preferences.notifications ? 'enabled' : 'disabled'}
+			</span>
+			<span class="ml-2" style="color: {preferences.notifications ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">
+				{preferences.notifications ? '●' : '○'}
+			</span>
+		</div>
+
+		<!-- Separator line -->
+		<div class="my-3">
+			<div class="border-t" style="border-color: var(--petalytics-border);"></div>
+		</div>
+
+		<!-- Status section header -->
+		<div class="cli-row flex items-center px-2 py-1">
+			<span style="color: var(--petalytics-subtle);">#</span>
+			<span class="ml-2" style="color: var(--petalytics-gold);">status</span>
+		</div>
+		
+		<div class="cli-row flex items-center px-2 py-1">
+			<span style="color: var(--petalytics-subtle);">></span>
+			<span style="color: var(--petalytics-foam);">api_status</span>
+			<span class="flex-1 text-right" style="color: {apiKeyStatus === 'valid' ? 'var(--petalytics-pine)' : apiKeyStatus === 'invalid' ? 'var(--petalytics-love)' : 'var(--petalytics-gold)'};">
+				{apiKeyStatus === 'valid' ? 'connected' : apiKeyStatus === 'invalid' ? 'invalid' : apiKeyStatus === 'checking' ? 'checking...' : 'not_set'}
+			</span>
 		</div>
 
 		<!-- Data management toggle -->
-		<div class="cli-section mt-4">
-			<div class="cli-row flex items-center space-x-2 hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => showDataManager = !showDataManager}>
-				<span style="color: var(--petalytics-subtle);">></span>
-				<span style="color: var(--petalytics-foam);">data_manager:</span>
-				<span style="color: var(--petalytics-text);">
-					{showDataManager ? 'show' : 'hidden'}
-				</span>
-				<ChevronRight 
-					size={14} 
-					style="color: var(--petalytics-subtle); transform: {showDataManager ? 'rotate(90deg)' : 'rotate(0deg)'}; transition: transform 0.2s;" 
-				/>
-			</div>
+		<div class="cli-row flex items-center hover:bg-gray-800/20 px-2 py-1 rounded transition-colors cursor-pointer" on:click={() => showDataManager = !showDataManager}>
+			<span style="color: var(--petalytics-subtle);">></span>
+			<span style="color: var(--petalytics-foam);">data_manager</span>
+			<span class="flex-1 text-right" style="color: var(--petalytics-text);">
+				{showDataManager ? 'show' : 'hidden'}
+			</span>
+			<ChevronRight 
+				size={14} 
+				style="color: var(--petalytics-subtle); transform: {showDataManager ? 'rotate(90deg)' : 'rotate(0deg)'}; transition: transform 0.2s;" 
+				class="ml-2"
+			/>
 		</div>
 
 		{#if showDataManager}

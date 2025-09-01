@@ -6,9 +6,19 @@
 	import Viewport from './panels/Viewport.svelte';
 
 	let layoutRef: HTMLDivElement;
+	let currentTime = '';
+
+	function updateTime() {
+		const now = new Date();
+		const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		const dayName = days[now.getDay()];
+		const hours = now.getHours().toString().padStart(2, '0');
+		const minutes = now.getMinutes().toString().padStart(2, '0');
+		currentTime = `${dayName} ${hours}:${minutes}`;
+	}
 
 	onMount(() => {
-		// Apply theme variables to layout (from omarchy-theme-builder)
+		// Apply theme variables to layout
 		cssVariables.subscribe((variables) => {
 			if (layoutRef) {
 				Object.entries(variables).forEach(([key, value]) => {
@@ -16,16 +26,24 @@
 				});
 			}
 		});
+
+		// Update time immediately and then every second
+		updateTime();
+		const timeInterval = setInterval(updateTime, 1000);
+
+		return () => {
+			clearInterval(timeInterval);
+		};
 	});
 </script>
 
 <div
 	bind:this={layoutRef}
-	class="layout-container w-screen h-screen overflow-hidden relative"
-	style="font-family: 'Inter', sans-serif;"
+	class="desktop-container w-screen h-screen overflow-hidden relative"
+	style="font-family: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;"
 >
-	<!-- Background (adapted from omarchy-theme-builder) -->
-	<div class="layout-background absolute inset-0">
+	<!-- Desktop Background -->
+	<div class="desktop-background absolute inset-0">
 		<div
 			class="absolute inset-0"
 			style="
@@ -39,34 +57,58 @@
 		></div>
 	</div>
 
-	<!-- Top Bar -->
+	<!-- Top Bar (Waybar-style) -->
 	<div
-		class="top-bar h-12 flex items-center justify-between px-6 border-b relative z-20"
+		class="top-bar h-8 flex items-center justify-between px-4 text-xs border-b frosted-glass relative z-20"
 		style="
-      background: var(--petalytics-surface);
+      background: rgba(31, 29, 46, 0.8);
       border-color: var(--petalytics-border);
       color: var(--petalytics-text);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     "
 	>
-		<div class="flex items-center space-x-3">
+		<!-- Left: Workspaces / Logo -->
+		<div class="flex items-center space-x-4">
 			<div
-				class="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center"
+				class="px-2 h-5 flex items-center justify-center text-xs font-mono"
+				style="background: var(--petalytics-pine); color: var(--petalytics-bg);"
 			>
-				<span class="text-white font-bold text-sm">🐾</span>
+				🐾
 			</div>
-			<h1 class="text-lg font-semibold" style="color: var(--petalytics-text);">Petalytics</h1>
+			<span class="font-mono" style="color: var(--petalytics-foam);">petalytics@desktop</span>
 		</div>
 
-		<div class="text-sm" style="color: var(--petalytics-subtle);">Pet Journal & AI Insights</div>
+		<!-- Center: Current Time -->
+		<div class="font-mono font-medium" style="color: var(--petalytics-subtle);">
+			{currentTime}
+		</div>
+
+		<!-- Right: System Status -->
+		<div class="flex items-center space-x-3 text-xs font-mono">
+			<div class="flex items-center space-x-1">
+				<span style="color: var(--petalytics-foam);">●</span>
+				<span style="color: var(--petalytics-subtle);">journal</span>
+			</div>
+			<div class="flex items-center space-x-1">
+				<span style="color: var(--petalytics-gold);">●</span>
+				<span style="color: var(--petalytics-subtle);">ai</span>
+			</div>
+		</div>
 	</div>
 
-	<!-- Main 3-Panel Layout -->
-	<div class="main-layout flex h-full gap-4 p-4 relative z-10" style="height: calc(100vh - 3rem);">
+	<!-- Main Layout -->
+	<div
+		class="main-layout flex h-full gap-2 p-2 relative z-10"
+		style="height: calc(100vh - 2rem);"
+	>
 		<!-- Left Column: Stacked Panels -->
-		<div class="left-column flex flex-col gap-4 w-1/2 lg:w-2/5">
+		<div class="left-column flex flex-col gap-2 flex-1">
+			<!-- Guardian Panel -->
 			<div class="guardian-panel flex-1 frosted-panel">
 				<GuardianPanel />
 			</div>
+			<!-- Pet Panel -->
 			<div class="pet-panel flex-1 frosted-panel">
 				<PetPanel />
 			</div>
@@ -81,17 +123,18 @@
 
 <style>
 	.frosted-panel {
-		background: var(--petalytics-surface);
-		border: 1px solid var(--petalytics-border);
-		border-radius: 12px;
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-		overflow: hidden;
+		background: rgba(25, 23, 36, 0.9);
+		border: 1px solid rgba(38, 35, 58, 0.5);
 		backdrop-filter: blur(16px);
 		-webkit-backdrop-filter: blur(16px);
+		border-radius: 0;
+		overflow: hidden;
 	}
 
 	.left-column {
 		min-height: 0;
+		width: 400px;
+		flex-shrink: 0;
 	}
 
 	.left-column .guardian-panel,
@@ -100,19 +143,23 @@
 		max-height: 55%;
 	}
 
+	.viewport-column {
+		flex: 1;
+		min-width: 0;
+	}
+
 	@media (max-width: 768px) {
 		.main-layout {
 			flex-direction: column;
-			gap: 16px;
+			gap: 8px;
 		}
 		.left-column {
 			width: 100%;
 			flex-direction: row;
 			height: 40%;
-			gap: 16px;
+			gap: 8px;
 		}
 		.viewport-column {
-			width: 100%;
 			height: 60%;
 		}
 	}
