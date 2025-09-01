@@ -3,6 +3,8 @@
 	import { Upload, Terminal } from 'lucide-svelte';
 	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
 	import type { PetPanelData } from '$lib/types/Pet.js';
+	import Modal from '../ui/Modal.svelte';
+	import MemorialModal from '../ui/MemorialModal.svelte';
 
 	let pets: PetPanelData[] = [];
 	// Derived lists
@@ -11,6 +13,12 @@
 	let selectedPetId: string | null = null;
 	let showCreateForm = false;
 	let imageInput: HTMLInputElement;
+
+	// Archive workflow state
+	let confirmArchiveOpen = false;
+	let petToArchive: PetPanelData | null = null;
+	let memorialOpen = false;
+	let memorialPet: PetPanelData | null = null;
 
 	const speciesSuggestions = ['dog','cat','bird','reptile','fish','rabbit','hamster','other'] as const;
 	const ageUnitSuggestions = ['years','months','weeks'] as const;
@@ -209,15 +217,39 @@
 	}
 
 	function archivePet(petId: string) {
-        petHelpers.archive(petId);
-        if (selectedPetId === petId) {
-            selectedPetHelpers.clear();
-        }
+	    const p = pets.find((x) => x.id === petId) || null;
+	    petToArchive = p;
+	    confirmArchiveOpen = true;
     }
 
-    function unarchivePet(petId: string) {
-        petHelpers.unarchive(petId);
-    }
+	function confirmArchive() {
+		if (!petToArchive) return;
+		petHelpers.archive(petToArchive.id);
+		if (selectedPetId === petToArchive.id) {
+			selectedPetHelpers.clear();
+		}
+		confirmArchiveOpen = false;
+		petToArchive = null;
+	}
+
+	function cancelArchive() {
+		confirmArchiveOpen = false;
+		petToArchive = null;
+	}
+
+	function unarchivePet(petId: string) {
+		petHelpers.unarchive(petId);
+	}
+
+	function openMemorial(petId: string) {
+		memorialPet = pets.find((p) => p.id === petId) || null;
+		memorialOpen = true;
+	}
+
+	function closeMemorial() {
+		memorialOpen = false;
+		memorialPet = null;
+	}
 </script>
 
 <div class="pet-panel h-full" style="background: var(--petalytics-bg);">
@@ -362,16 +394,17 @@
  						<span class="value" style="color: var(--petalytics-subtle);">
  							{pet.species || 'pet'} | {pet.breed || '—'} | {pet.age}{pet.ageUnit === 'months' ? 'm' : pet.ageUnit === 'weeks' ? 'w' : 'y'}
  						</span>
- 					</div>
-						<div class="px-2 pb-2 flex justify-end">
-                            <button class="arrow-btn" onclick={() => archivePet(pet.id)}>archive</button>
-                        </div>
+						<div class="ml-2 flex items-center gap-2">
+							<button class="arrow-btn" onclick={() => selectPet(pet.id)}>select</button>
+							<button class="arrow-btn" onclick={() => archivePet(pet.id)}>archive</button>
+						</div>
+					</div>
 					{/each}
  		{/if}
 
 		<!-- Archived list -->
 		<div class="my-3"><div class="border-t" style="border-color: var(--petalytics-border);"></div></div>
-		<div class="cli-row px-2 py-1">
+		<div class="cli-row px-2 py-1" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent);">
 			<span style="color: var(--petalytics-subtle);">#</span>
 			<span class="ml-2" style="color: var(--petalytics-gold);">archived_pets</span>
 		</div>
@@ -379,19 +412,33 @@
 			<div class="px-2 py-2" style="color: var(--petalytics-subtle);">none</div>
 		{:else}
 			{#each archivedPets as pet}
-				<div class="cli-row px-2 py-1">
+				<div class="cli-row px-2 py-1" style="opacity: 0.9;">
 					<span class="label" style="color: var(--petalytics-text);">{pet.name}</span>
 					<span class="value" style="color: var(--petalytics-subtle);">
 						{pet.species || 'pet'} | {pet.breed || '—'} | {pet.age}{pet.ageUnit === 'months' ? 'm' : pet.ageUnit === 'weeks' ? 'w' : 'y'}
 					</span>
 				</div>
 				<div class="px-2 pb-2 flex justify-end">
-					<button class="arrow-btn" onclick={() => unarchivePet(pet.id)}>unarchive</button>
+					<button class="arrow-btn" onclick={() => openMemorial(pet.id)}>view_memories</button>
 				</div>
 			{/each}
 		{/if}
 	</div>
 </div>
+
+<!-- Archive confirmation modal -->
+<Modal isOpen={confirmArchiveOpen} title="Archive Pet" size="sm" onclose={cancelArchive}>
+	<div class="space-y-4 font-mono">
+		<p>Mark {petToArchive?.name} as passed away?</p>
+		<div class="flex justify-end gap-2">
+			<button class="button-secondary" onclick={cancelArchive}>Cancel</button>
+			<button class="button" onclick={confirmArchive}>Confirm</button>
+		</div>
+	</div>
+</Modal>
+
+<!-- Memorial modal for archived pet -->
+<MemorialModal isOpen={memorialOpen} pet={memorialPet} onclose={closeMemorial} />
 
 <style>
 .cli-row {

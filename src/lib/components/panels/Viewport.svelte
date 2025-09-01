@@ -112,7 +112,7 @@
 		<!-- Loading State with Skeleton -->
 		<div class="space-y-4">
 			<Skeleton height="h-8" />
-			<Skeleton avatar height="h-20" />
+			<Skeleton showAvatar height="h-20" />
 			<Skeleton height="h-6" />
 			<Skeleton height="h-4" />
 		</div>
