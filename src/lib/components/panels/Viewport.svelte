@@ -138,14 +138,14 @@
 			<Skeleton height="h-6" />
 			<Skeleton height="h-4" />
 		</div>
-	{:else if !selectedPet}
+	{:else if !selectedPet && currentView !== 'memories'}
 		<EmptyState
 			icon="file-text"
 			title="No pet selected"
 			description="Select a pet from the left panel to view details, add journal entries, and see AI insights."
 			actionText="Add a Pet"
 			onAction={() => {
-				console.log('Add a Pet clicked');
+					uiHelpers.openCreatePetForm();
 			}}
 		/>
 	{:else}
@@ -167,32 +167,25 @@
 						</div>
 					</div>
 
-					<div class="flex space-x-2">
-						<button
-							on:click={() => uiHelpers.setView('dashboard')}
-							class="nav-button px-3 py-1 rounded-md text-sm"
-							class:active={currentView === 'dashboard'}
-							disabled={isArchived(selectedPet)}
-						>
-							Dashboard
-						</button>
-						<button
-							on:click={() => uiHelpers.setView('journal')}
-							class="nav-button px-3 py-1 rounded-md text-sm"
-							class:active={currentView === 'journal'}
-							disabled={isArchived(selectedPet)}
-						>
-							New Entry
-						</button>
-						<button
-							on:click={() => uiHelpers.setView('history')}
-							class="nav-button px-3 py-1 rounded-md text-sm"
-							class:active={currentView === 'history'}
-							disabled={isArchived(selectedPet)}
-						>
-							History
-						</button>
-					</div>
+					{#if currentView === 'memories'}
+						<div class="flex space-x-2">
+							<button
+								on:click={() => {
+									// return to dashboard; select first active pet if available
+									const firstActive = (pets || []).find((p) => !p.archived) || null;
+									if (firstActive) {
+										selectedPetHelpers.select(firstActive.id);
+									} else {
+										selectedPetHelpers.clear();
+									}
+									uiHelpers.setView('dashboard');
+								}}
+								class="nav-button px-3 py-1 rounded-md text-sm"
+							>
+								Back to Dashboard
+							</button>
+						</div>
+					{/if}
 				</div>
 			</div>
 
@@ -223,7 +216,7 @@
 							<div class="flex items-center justify-between">
 								<div>
 									<div class="text-base font-semibold" style="color: var(--petalytics-text);">Memories</div>
-									<div class="text-xs" style="color: var(--petalytics-subtle);">All archived pets</div>
+									<div class="text-xs" style="color: var(--petalytics-subtle);">Archived memories</div>
 								</div>
 								<div class="text-xs px-2 py-1 rounded" style="background: var(--petalytics-surface); color: var(--petalytics-subtle);">
 									{archivedPetsList().length} pets
@@ -261,7 +254,7 @@
 							{/each}
 						{/if}
 					</div>
-				{:else if currentView === 'dashboard'}
+				{:else if currentView === 'dashboard' && selectedPet}
 					<!-- Dashboard View -->
 					<div class="dashboard-grid space-y-4">
 						<!-- Stats Cards -->
@@ -381,7 +374,7 @@
 							</div>
 						</div>
 					</div>
-				{:else if currentView === 'journal'}
+				{:else if currentView === 'journal' && selectedPet}
 					<!-- Journal Entry Form -->
 					<div class="journal-form max-w-2xl mx-auto">
 						<div class="form-card p-6 rounded-lg" style="background: var(--petalytics-surface);">
@@ -479,7 +472,7 @@
 							</div>
 						</div>
 					</div>
-				{:else if currentView === 'history'}
+				{:else if currentView === 'history' && selectedPet}
 					<!-- History View -->
 					<div class="history-view max-w-4xl mx-auto">
 						<h3 class="text-xl font-semibold mb-4" style="color: var(--petalytics-text);">
@@ -551,12 +544,8 @@
 		transition: all 0.2s;
 	}
 
-	.nav-button.active {
-		background: var(--petalytics-accent);
-		color: var(--petalytics-bg);
-	}
-
-	.nav-button:hover:not(.active) {
+	.nav-button:hover {
 		opacity: 0.8;
+		background: var(--petalytics-highlight-low);
 	}
 </style>

@@ -3,7 +3,7 @@
 	import { Upload, Terminal } from 'lucide-svelte';
 	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
 	import type { PetPanelData } from '$lib/types/Pet.js';
-	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
+	import { rightPanelView, uiHelpers, createPetFormOpen } from '$lib/stores/ui';
 
 	let pets: PetPanelData[] = [];
 	// Derived lists
@@ -92,6 +92,13 @@
 	let formErrors: Record<string, string> = {};
 
 	onMount(() => {
+		createPetFormOpen.subscribe((open) => {
+			if (open) {
+				showCreateForm = true;
+			} else {
+				// don't forcibly close if user opened manually; only close when toggled locally
+			}
+		});
 		petStore.subscribe((value) => {
 			pets = value;
 			// If no selected pet and we have pets, auto-select the first ACTIVE one
@@ -115,6 +122,7 @@
 		showCreateForm = !showCreateForm;
 		if (!showCreateForm) {
 			resetForm();
+			uiHelpers.closeCreatePetForm();
 		}
 	}
 
@@ -401,7 +409,7 @@
 			<div class="px-2 py-2" style="color: var(--petalytics-subtle);">none</div>
 		{:else}
 			{#each archivedPets as pet}
-				<div class="cli-row px-2 py-1" style="opacity: 0.9;">
+				<div class="cli-row px-2 py-1" style="opacity: 0.9; cursor: default;">
 					<span class="label" style="color: var(--petalytics-text);">{pet.name}</span>
 					<span class="value" style="color: var(--petalytics-subtle);">
 						{pet.species || 'pet'} | {pet.breed || '—'} | {pet.age}{pet.ageUnit === 'months' ? 'm' : pet.ageUnit === 'weeks' ? 'w' : 'y'}
