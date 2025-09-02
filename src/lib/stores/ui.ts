@@ -1,6 +1,12 @@
 import { writable } from 'svelte/store';
 
-export type RightPanelView = 'dashboard' | 'journal' | 'history' | 'memories' | 'confirmArchive' | 'dataManager';
+export type RightPanelView =
+	| 'dashboard'
+	| 'journal'
+	| 'history'
+	| 'memories'
+	| 'confirmArchive'
+	| 'dataManager';
 
 export const rightPanelView = writable<RightPanelView>('dashboard');
 
@@ -8,16 +14,16 @@ export const rightPanelView = writable<RightPanelView>('dashboard');
 export const createPetFormOpen = writable<boolean>(false);
 
 export const uiHelpers = {
-  setView(view: RightPanelView) {
-    rightPanelView.set(view);
-  },
-  setCreatePetFormOpen(open: boolean) {
-    createPetFormOpen.set(open);
-  },
-  openCreatePetForm() {
-    createPetFormOpen.set(true);
-  },
-  closeCreatePetForm() {
-    createPetFormOpen.set(false);
-  }
+	setView(view: RightPanelView) {
+		rightPanelView.set(view);
+	},
+	setCreatePetFormOpen(open: boolean) {
+		createPetFormOpen.set(open);
+	},
+	openCreatePetForm() {
+		createPetFormOpen.set(true);
+	},
+	closeCreatePetForm() {
+		createPetFormOpen.set(false);
+	},
 };

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { ChevronLeft, ChevronRight, User, Key, Settings, CheckCircle, AlertCircle, Terminal } from 'lucide-svelte';
-	import { guardianHelpers } from '$lib/stores/guardian.js';
-	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis.js';
-	import { loadThemePreset, themePresets } from '$lib/stores/theme.js';
+	import { Terminal, ChevronRight } from 'lucide-svelte';
+	import { guardianHelpers } from '$lib/stores/guardian';
+	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis';
+	import { loadThemePreset, themePresets } from '$lib/stores/theme';
 	import { uiHelpers } from '$lib/stores/ui';
-	import { fetchOpenRouterModels } from '$lib/utils/ai-analysis.js';
+	import { fetchOpenRouterModels } from '$lib/utils/ai-analysis';
 
 	let apiKeyInput = '';
 	let prevApiKey = '';
@@ -17,7 +17,7 @@
 	};
 
 	let apiKeyStatus = 'unchecked'; // unchecked, checking, valid, invalid
-	
+
 	// CLI-style editing states
 	let editingField: string | null = null;
 	const themeKeys = Object.keys(themePresets) as Array<keyof typeof themePresets>;
@@ -25,7 +25,7 @@
 	let themeIndex = 0;
 
 	const displayKey = (k: keyof typeof themePresets) => (k === 'tokyoNight' ? 'tokyo-night' : k);
-    
+
 	// OpenRouter model selection (dynamic; fallback list shown until fetched)
 	let modelList: string[] = [
 		'openai/gpt-oss-20b:free',
@@ -59,7 +59,9 @@
 		if (dir === 'next') {
 			currentModelIndex = modelList.length ? (currentModelIndex + 1) % modelList.length : 0;
 		} else {
-			currentModelIndex = modelList.length ? (currentModelIndex - 1 + modelList.length) % modelList.length : 0;
+			currentModelIndex = modelList.length
+				? (currentModelIndex - 1 + modelList.length) % modelList.length
+				: 0;
 		}
 		persistModel();
 	}
@@ -87,7 +89,7 @@
 		}
 	}
 
-		onMount(() => {
+	onMount(() => {
 		// Load saved guardian data
 		const saved = guardianHelpers.load();
 		if (saved) {
@@ -95,16 +97,17 @@
 			apiKeyInput = saved.apiKey || '';
 			preferences = { ...preferences, ...saved.preferences };
 		}
-		
-	// Get current theme from localStorage
-		const savedTheme = (localStorage.getItem('petalytics-theme') as keyof typeof themePresets) || 'everforest';
+
+		// Get current theme from localStorage
+		const savedTheme =
+			(localStorage.getItem('petalytics-theme') as keyof typeof themePresets) || 'everforest';
 		currentThemeKey = themeKeys.includes(savedTheme) ? savedTheme : 'everforest';
 		themeIndex = themeKeys.indexOf(currentThemeKey);
 
-	// Get model selection from guardian storage
-	loadModelFromStorage();
-	// Fetch model list from OpenRouter if API key is present
-	loadModels();
+		// Get model selection from guardian storage
+		loadModelFromStorage();
+		// Fetch model list from OpenRouter if API key is present
+		loadModels();
 	});
 
 	function toggleTheme(direction: 'prev' | 'next') {
@@ -152,7 +155,7 @@
 		}
 	}
 
-	function handleKeydown(event: KeyboardEvent, field: string) {
+	function handleKeydown(event: KeyboardEvent, _field: string) {
 		if (event.key === 'Enter') {
 			stopEdit();
 		} else if (event.key === 'Escape') {
@@ -223,17 +226,28 @@
 
 <div class="guardian-panel h-full" style="background: var(--petalytics-bg);">
 	<!-- CLI-style header -->
-	<div class="cli-header p-3 border-b font-mono text-sm" style="border-color: var(--petalytics-border); background: var(--petalytics-surface);">
+	<div
+		class="cli-header p-3 border-b font-mono text-sm"
+		style="border-color: var(--petalytics-border); background: var(--petalytics-surface);"
+	>
 		<div class="flex items-center space-x-2" style="color: var(--petalytics-pine);">
 			<Terminal size={14} />
 			<span>guardian@petalytics:~$</span>
 		</div>
 	</div>
 
-	<div class="cli-content p-3 font-mono text-sm overflow-y-auto" style="color: var(--petalytics-text);">
-		
+	<div
+		class="cli-content p-3 font-mono text-sm overflow-y-auto"
+		style="color: var(--petalytics-text);"
+	>
 		<!-- Guardian name row -->
-		<div class="cli-row px-2 py-1" role="button" tabindex="0" onclick={() => startEdit('guardian')} onkeydown={(e) => handleActivate(e, () => startEdit('guardian'))}>
+		<div
+			class="cli-row px-2 py-1"
+			role="button"
+			tabindex="0"
+			onclick={() => startEdit('guardian')}
+			onkeydown={(e) => handleActivate(e, () => startEdit('guardian'))}
+		>
 			<span class="label" style="color: var(--petalytics-foam);">guardian</span>
 			<span class="value" style="color: var(--petalytics-text);">
 				{#if editingField === 'guardian'}
@@ -252,7 +266,13 @@
 		</div>
 
 		<!-- API Key row -->
-		<div class="cli-row px-2 py-1" role="button" tabindex="0" onclick={() => startEdit('apiKey')} onkeydown={(e) => handleActivate(e, () => startEdit('apiKey'))}>
+		<div
+			class="cli-row px-2 py-1"
+			role="button"
+			tabindex="0"
+			onclick={() => startEdit('apiKey')}
+			onkeydown={(e) => handleActivate(e, () => startEdit('apiKey'))}
+		>
 			<span class="label" style="color: var(--petalytics-foam);">api_key</span>
 			<span class="value" style="color: var(--petalytics-text);">
 				{#if editingField === 'apiKey'}
@@ -290,29 +310,69 @@
 		<!-- Model selection (OpenRouter) -->
 		<div class="cli-row px-2 py-1">
 			<span class="label" style="color: var(--petalytics-foam);">model</span>
-			<span class="value" style="color: var(--petalytics-text);">{displayModel()} {#if modelsLoading}(loading...){/if}</span>
+			<span class="value" style="color: var(--petalytics-text);"
+				>{displayModel()}
+				{#if modelsLoading}(loading...){/if}</span
+			>
 			<div class="ml-2 flex items-center space-x-1">
-				<button type="button" class="arrow-btn" onclick={() => cycleModel('prev')} aria-label="Previous model">&lt;</button>
-				<button type="button" class="arrow-btn" onclick={() => cycleModel('next')} aria-label="Next model">&gt;</button>
-				<button type="button" class="arrow-btn" onclick={loadModels} aria-label="Refresh models">↻</button>
+				<button
+					type="button"
+					class="arrow-btn"
+					onclick={() => cycleModel('prev')}
+					aria-label="Previous model">&lt;</button
+				>
+				<button
+					type="button"
+					class="arrow-btn"
+					onclick={() => cycleModel('next')}
+					aria-label="Next model">&gt;</button
+				>
+				<button type="button" class="arrow-btn" onclick={loadModels} aria-label="Refresh models"
+					>↻</button
+				>
 			</div>
 		</div>
 
 		<!-- Theme row -->
 		<div class="cli-row px-2 py-1">
 			<span class="label" style="color: var(--petalytics-foam);">theme</span>
-			<span class="value" style="color: var(--petalytics-text);">{displayKey(currentThemeKey)}</span>
+			<span class="value" style="color: var(--petalytics-text);">{displayKey(currentThemeKey)}</span
+			>
 			<div class="ml-2 flex items-center space-x-1">
-				<button type="button" class="arrow-btn" onclick={() => toggleTheme('prev')} aria-label="Previous theme">&lt;</button>
-				<button type="button" class="arrow-btn" onclick={() => toggleTheme('next')} aria-label="Next theme">&gt;</button>
+				<button
+					type="button"
+					class="arrow-btn"
+					onclick={() => toggleTheme('prev')}
+					aria-label="Previous theme">&lt;</button
+				>
+				<button
+					type="button"
+					class="arrow-btn"
+					onclick={() => toggleTheme('next')}
+					aria-label="Next theme">&gt;</button
+				>
 			</div>
 		</div>
 
 		<!-- Preferences: only ai_insights -->
-		<div class="cli-row px-2 py-1" role="button" tabindex="0" aria-pressed={preferences.aiInsights} onclick={() => togglePreference('aiInsights')} onkeydown={(e) => handleActivate(e, () => togglePreference('aiInsights'))}>
+		<div
+			class="cli-row px-2 py-1"
+			role="button"
+			tabindex="0"
+			aria-pressed={preferences.aiInsights}
+			onclick={() => togglePreference('aiInsights')}
+			onkeydown={(e) => handleActivate(e, () => togglePreference('aiInsights'))}
+		>
 			<span class="label" style="color: var(--petalytics-foam);">ai_insights</span>
-			<span class="value" style="color: var(--petalytics-text);">{preferences.aiInsights ? 'enabled' : 'disabled'}</span>
-			<span class="ml-2" style="color: {preferences.aiInsights ? 'var(--petalytics-pine)' : 'var(--petalytics-subtle)'};">{preferences.aiInsights ? '●' : '○'}</span>
+			<span class="value" style="color: var(--petalytics-text);"
+				>{preferences.aiInsights ? 'enabled' : 'disabled'}</span
+			>
+			<span
+				class="ml-2"
+				style="color: {preferences.aiInsights
+					? 'var(--petalytics-pine)'
+					: 'var(--petalytics-subtle)'};">{preferences.aiInsights ? '●' : '○'}</span
+			>
 		</div>
 
 		<!-- Separator line -->
@@ -321,7 +381,13 @@
 		</div>
 
 		<!-- Data Manager launcher (opens in right panel) -->
-		<div class="cli-row px-2 py-1" role="button" tabindex="0" onclick={() => uiHelpers.setView('dataManager')} onkeydown={(e) => handleActivate(e, () => uiHelpers.setView('dataManager'))}>
+		<div
+			class="cli-row px-2 py-1"
+			role="button"
+			tabindex="0"
+			onclick={() => uiHelpers.setView('dataManager')}
+			onkeydown={(e) => handleActivate(e, () => uiHelpers.setView('dataManager'))}
+		>
 			<span class="label" style="color: var(--petalytics-foam);">data_manager</span>
 			<span class="value" style="color: var(--petalytics-text);">open</span>
 			<ChevronRight size={14} style="color: var(--petalytics-subtle);" class="ml-2" />
@@ -330,61 +396,64 @@
 </div>
 
 <style>
-/* Alacritty-inspired interactive rows */
-.cli-row {
-	display: flex;
-	align-items: center;
-	border: 1px solid transparent;
-	border-radius: 6px;
-	transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
-}
-.cli-row[role="button"] {
-	cursor: pointer;
-}
-.cli-row:hover {
-	background: var(--petalytics-highlight-low);
-	border-color: var(--petalytics-border);
-}
-.cli-row:focus-within,
-.cli-row[role="button"]:focus-visible {
-	outline: none;
-	background: var(--petalytics-highlight-med);
-	border-color: var(--petalytics-accent);
-	box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 40%, transparent);
-}
-.cli-row[aria-pressed="true"] {
-	background: var(--petalytics-highlight-high);
-	border-color: var(--petalytics-accent);
-}
-.label {
-	color: var(--petalytics-foam);
-}
-.value {
-	margin-left: auto;
-	text-align: right;
-	flex: 1 1 auto;
-}
-.input-inline {
-	padding: 0;
-}
-.arrow-btn {
-	font-family: 'JetBrains Mono', monospace;
-	font-size: 0.85rem;
-	line-height: 1rem;
-	background: transparent;
-	border: 1px solid var(--petalytics-border);
-	color: var(--petalytics-subtle);
-	padding: 0.15rem 0.4rem;
-	border-radius: 4px;
-	cursor: pointer;
-}
-.arrow-btn:hover {
-	background: var(--petalytics-highlight-low);
-	color: var(--petalytics-text);
-}
-.arrow-btn:focus-visible {
-	outline: none;
-	border-color: var(--petalytics-accent);
-	box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 35%, transparent);
-}
+	/* Alacritty-inspired interactive rows */
+	.cli-row {
+		display: flex;
+		align-items: center;
+		border: 1px solid transparent;
+		border-radius: 6px;
+		transition:
+			background 140ms ease,
+			border-color 140ms ease,
+			box-shadow 140ms ease;
+	}
+	.cli-row[role='button'] {
+		cursor: pointer;
+	}
+	.cli-row:hover {
+		background: var(--petalytics-highlight-low);
+		border-color: var(--petalytics-border);
+	}
+	.cli-row:focus-within,
+	.cli-row[role='button']:focus-visible {
+		outline: none;
+		background: var(--petalytics-highlight-med);
+		border-color: var(--petalytics-accent);
+		box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 40%, transparent);
+	}
+	.cli-row[aria-pressed='true'] {
+		background: var(--petalytics-highlight-high);
+		border-color: var(--petalytics-accent);
+	}
+	.label {
+		color: var(--petalytics-foam);
+	}
+	.value {
+		margin-left: auto;
+		text-align: right;
+		flex: 1 1 auto;
+	}
+	.input-inline {
+		padding: 0;
+	}
+	.arrow-btn {
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.85rem;
+		line-height: 1rem;
+		background: transparent;
+		border: 1px solid var(--petalytics-border);
+		color: var(--petalytics-subtle);
+		padding: 0.15rem 0.4rem;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	.arrow-btn:hover {
+		background: var(--petalytics-highlight-low);
+		color: var(--petalytics-text);
+	}
+	.arrow-btn:focus-visible {
+		outline: none;
+		border-color: var(--petalytics-accent);
+		box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 35%, transparent);
+	}
 </style>

@@ -15,7 +15,10 @@
 					<div class="h-4 rounded" style="background: var(--petalytics-overlay); width: 75%;"></div>
 					<div class="h-3 rounded" style="background: var(--petalytics-overlay); width: 50%;"></div>
 					{#if height === 'h-16'}
-						<div class="h-3 rounded" style="background: var(--petalytics-overlay); width: 60%;"></div>
+						<div
+							class="h-3 rounded"
+							style="background: var(--petalytics-overlay); width: 60%;"
+						></div>
 					{/if}
 				</div>
 			</div>

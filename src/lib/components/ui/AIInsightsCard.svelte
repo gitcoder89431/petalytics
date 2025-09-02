@@ -19,7 +19,9 @@
 		{#if !compact}
 			<div class="flex items-center space-x-2 mb-3">
 				<Brain size={16} style="color: var(--petalytics-accent);" />
-				<span class="font-medium text-sm" style="color: var(--petalytics-text);">AI Analysis • Ruixen</span>
+				<span class="font-medium text-sm" style="color: var(--petalytics-text);"
+					>AI Analysis • Ruixen</span
+				>
 			</div>
 		{/if}
 
@@ -77,7 +79,7 @@
 				</div>
 			{/if}
 		</div>
-  	</div>
+	</div>
 {:else}
 	<div class="no-analysis text-xs" style="color: var(--petalytics-muted);" data-pet-id={petId}>
 		AI analysis pending...

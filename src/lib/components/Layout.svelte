@@ -108,10 +108,7 @@
 	</div>
 
 	<!-- Main Layout -->
-	<div
-		class="main-layout flex h-full gap-2 p-2 relative z-10"
-		style="height: calc(100vh - 2rem);"
-	>
+	<div class="main-layout flex h-full gap-2 p-2 relative z-10" style="height: calc(100vh - 2rem);">
 		<!-- Left Column: Stacked Panels -->
 		<div class="left-column flex flex-col gap-2 flex-1">
 			<!-- Guardian Panel -->

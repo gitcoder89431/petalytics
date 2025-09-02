@@ -145,7 +145,10 @@ Consider breed-specific traits, age-related needs, and behavioral patterns. Keep
 }
 
 // Fetch available models from OpenRouter API
-export async function fetchOpenRouterModels(apiKey: string, onlyFree: boolean = true): Promise<string[]> {
+export async function fetchOpenRouterModels(
+	apiKey: string,
+	onlyFree: boolean = true
+): Promise<string[]> {
 	const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
 	const resp = await fetch('https://openrouter.ai/api/v1/models', {
 		method: 'GET',

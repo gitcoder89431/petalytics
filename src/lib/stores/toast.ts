@@ -31,9 +31,9 @@ export const toast = {
 function addToast(toastData: Omit<Toast, 'id'>) {
 	const id = Date.now().toString();
 	const newToast: Toast = { id, ...toastData };
-	
+
 	toasts.update((all) => [newToast, ...all]);
-	
+
 	if (toastData.duration && toastData.duration > 0) {
 		setTimeout(() => {
 			toast.dismiss(id);

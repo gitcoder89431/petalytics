@@ -30,7 +30,7 @@
 		: null;
 
 	function formatAge(pet: PetPanelData): string {
-		if (!pet || (pet.age === undefined || pet.age === null)) return '';
+		if (!pet || pet.age === undefined || pet.age === null) return '';
 		const unit = pet.ageUnit || 'years';
 		const abbr = unit === 'years' ? 'y' : unit === 'months' ? 'm' : 'w';
 		return `${pet.age} ${abbr}`;
@@ -123,7 +123,16 @@
 					const petNow = petHelpers.getPet(selectedPet.id);
 					if (petNow) {
 						const updatedEntries = (petNow.journalEntries || []).map((e) =>
-							e.id === entry.id ? { ...e, aiAnalysis: { ...res, modelId: (selectedPet as any)?.model || undefined, analyzedAt: new Date().toISOString() } } : e
+							e.id === entry.id
+								? {
+										...e,
+										aiAnalysis: {
+											...res,
+											modelId: (selectedPet as any)?.model || undefined,
+											analyzedAt: new Date().toISOString(),
+										},
+									}
+								: e
 						);
 						petHelpers.update(petNow.id, { journalEntries: updatedEntries });
 					}
@@ -164,13 +173,16 @@
 			description="Select a pet from the left panel to view details, add journal entries, and see AI insights."
 			actionText="Add a Pet"
 			onAction={() => {
-					uiHelpers.openCreatePetForm();
+				uiHelpers.openCreatePetForm();
 			}}
 		/>
 	{:else}
-	<div class="pet-viewport h-full flex flex-col">
+		<div class="pet-viewport h-full flex flex-col">
 			<!-- Header with pet info and navigation -->
-			<div class="viewport-header p-4 border-b" style="border-color: var(--petalytics-border); background: var(--petalytics-overlay);">
+			<div
+				class="viewport-header p-4 border-b"
+				style="border-color: var(--petalytics-border); background: var(--petalytics-overlay);"
+			>
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-3">
 						{#if selectedPet}
@@ -181,8 +193,24 @@
 							/>
 						{/if}
 						<div>
-							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">{selectedPet ? selectedPet.name : (currentView === 'memories' ? 'Memories' : currentView === 'dataManager' ? 'Data Manager' : 'Petalytics')}</h2>
-							<p class="text-xs" style="color: var(--petalytics-subtle);">{selectedPet ? petSubtitle(selectedPet) : (currentView === 'memories' ? 'Archived memories' : currentView === 'dataManager' ? 'Backup, export, and import' : '')}</p>
+							<h2 class="text-xl font-bold" style="color: var(--petalytics-text);">
+								{selectedPet
+									? selectedPet.name
+									: currentView === 'memories'
+										? 'Memories'
+										: currentView === 'dataManager'
+											? 'Data Manager'
+											: 'Petalytics'}
+							</h2>
+							<p class="text-xs" style="color: var(--petalytics-subtle);">
+								{selectedPet
+									? petSubtitle(selectedPet)
+									: currentView === 'memories'
+										? 'Archived memories'
+										: currentView === 'dataManager'
+											? 'Backup, export, and import'
+											: ''}
+							</p>
 						</div>
 					</div>
 
@@ -240,59 +268,93 @@
 				{#if currentView === 'confirmArchive'}
 					<!-- Confirm Archive View -->
 					<div class="space-y-4 font-mono">
-						<h3 class="text-lg font-semibold" style="color: var(--petalytics-text);">Archive Pet</h3>
+						<h3 class="text-lg font-semibold" style="color: var(--petalytics-text);">
+							Archive Pet
+						</h3>
 						<p>Mark {selectedPet?.name} as passed away?</p>
 						<div class="flex justify-end gap-2">
-							<button class="button-secondary" on:click={() => uiHelpers.setView('dashboard')}>Cancel</button>
-							<button class="button" on:click={() => {
-								if (selectedPet) {
-									petHelpers.archive(selectedPet.id);
-									if (selectedPetId === selectedPet.id) {
-										selectedPetHelpers.clear();
+							<button class="button-secondary" on:click={() => uiHelpers.setView('dashboard')}
+								>Cancel</button
+							>
+							<button
+								class="button"
+								on:click={() => {
+									if (selectedPet) {
+										petHelpers.archive(selectedPet.id);
+										if (selectedPetId === selectedPet.id) {
+											selectedPetHelpers.clear();
+										}
 									}
-								}
-								uiHelpers.setView('dashboard');
-							}}>Confirm</button>
+									uiHelpers.setView('dashboard');
+								}}>Confirm</button
+							>
 						</div>
 					</div>
 				{:else if currentView === 'memories'}
 					<!-- Centralized archived memories view -->
 					<div class="space-y-4 font-mono">
-						<div class="rounded p-3" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);">
+						<div
+							class="rounded p-3"
+							style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);"
+						>
 							<div class="flex items-center justify-between">
 								<div>
-									<div class="text-base font-semibold" style="color: var(--petalytics-text);">Memories</div>
-									<div class="text-xs" style="color: var(--petalytics-subtle);">Archived memories</div>
+									<div class="text-base font-semibold" style="color: var(--petalytics-text);">
+										Memories
+									</div>
+									<div class="text-xs" style="color: var(--petalytics-subtle);">
+										Archived memories
+									</div>
 								</div>
-								<div class="text-xs px-2 py-1 rounded" style="background: var(--petalytics-surface); color: var(--petalytics-subtle);">
+								<div
+									class="text-xs px-2 py-1 rounded"
+									style="background: var(--petalytics-surface); color: var(--petalytics-subtle);"
+								>
 									{archivedPetsList().length} pets
 								</div>
 							</div>
-
 						</div>
 
 						{#if archivedPetsList().length === 0}
-							<div class="text-sm" style="color: var(--petalytics-subtle);">No archived pets yet.</div>
+							<div class="text-sm" style="color: var(--petalytics-subtle);">
+								No archived pets yet.
+							</div>
 						{:else}
 							{#each archivedPetsList() as ap}
-								<div class="rounded border p-3 space-y-2" style="background: var(--petalytics-surface); border-color: var(--petalytics-border);">
+								<div
+									class="rounded border p-3 space-y-2"
+									style="background: var(--petalytics-surface); border-color: var(--petalytics-border);"
+								>
 									<div class="flex items-center justify-between">
-										<div class="font-semibold" style="color: var(--petalytics-text);">In loving memory of {ap.name}</div>
-										<div class="text-xs" style="color: var(--petalytics-subtle);">{(ap.journalEntries?.length || 0)} memories</div>
+										<div class="font-semibold" style="color: var(--petalytics-text);">
+											In loving memory of {ap.name}
+										</div>
+										<div class="text-xs" style="color: var(--petalytics-subtle);">
+											{ap.journalEntries?.length || 0} memories
+										</div>
 									</div>
 									{#if (ap.journalEntries?.length || 0) === 0}
-										<div class="text-sm" style="color: var(--petalytics-subtle);">No journal entries.</div>
+										<div class="text-sm" style="color: var(--petalytics-subtle);">
+											No journal entries.
+										</div>
 									{:else}
 										<div class="space-y-2">
 											{#each [...(ap.journalEntries || [])].slice().reverse() as entry}
-												<div class="rounded border p-3" style="background: var(--petalytics-surface); border-color: var(--petalytics-border);">
+												<div
+													class="rounded border p-3"
+													style="background: var(--petalytics-surface); border-color: var(--petalytics-border);"
+												>
 													<div class="flex items-center justify-between mb-2">
 														<div class="text-xs" style="color: var(--petalytics-subtle);">
 															{new Date(entry.date as any).toLocaleDateString()} — {ap.name}
 														</div>
-														<div class="text-sm" style="color: var(--petalytics-text);">{entry.mood || '🐾'}</div>
+														<div class="text-sm" style="color: var(--petalytics-text);">
+															{entry.mood || '🐾'}
+														</div>
 													</div>
-													<div class="text-sm" style="color: var(--petalytics-text);">{entry.content}</div>
+													<div class="text-sm" style="color: var(--petalytics-text);">
+														{entry.content}
+													</div>
 												</div>
 											{/each}
 										</div>
@@ -304,15 +366,25 @@
 				{:else if currentView === 'dataManager'}
 					<!-- Data Manager full-width in right panel -->
 					<div class="space-y-4 font-mono">
-						<div class="rounded p-3" style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);">
+						<div
+							class="rounded p-3"
+							style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);"
+						>
 							<div class="flex items-center justify-between">
 								<div>
-									<div class="text-base font-semibold" style="color: var(--petalytics-text);">Data Manager</div>
-									<div class="text-xs" style="color: var(--petalytics-subtle);">Backup, export, and import</div>
+									<div class="text-base font-semibold" style="color: var(--petalytics-text);">
+										Data Manager
+									</div>
+									<div class="text-xs" style="color: var(--petalytics-subtle);">
+										Backup, export, and import
+									</div>
 								</div>
 							</div>
 						</div>
-						<div class="p-2 rounded" style="background: var(--petalytics-surface); border: 1px solid var(--petalytics-border);">
+						<div
+							class="p-2 rounded"
+							style="background: var(--petalytics-surface); border: 1px solid var(--petalytics-border);"
+						>
 							<DataManager />
 						</div>
 					</div>
@@ -617,7 +689,7 @@
 		background: var(--petalytics-highlight-low);
 	}
 
-	.nav-button[data-active="true"] {
+	.nav-button[data-active='true'] {
 		background: var(--petalytics-highlight-med);
 		border: 1px solid var(--petalytics-accent);
 	}

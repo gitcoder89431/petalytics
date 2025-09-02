@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { toasts, toast, type Toast } from '$lib/stores/toast';
 	import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
@@ -38,7 +37,7 @@
 					<IconComponent size={20} style="color: {colors[toastItem.type]};" />
 				{/if}
 			</div>
-			
+
 			<div class="flex-1 min-w-0">
 				<p class="text-sm font-medium" style="color: var(--petalytics-text);">
 					{toastItem.title}
@@ -49,7 +48,7 @@
 					</p>
 				{/if}
 			</div>
-			
+
 			<button
 				on:click={() => toast.dismiss(toastItem.id)}
 				class="flex-shrink-0 p-1 rounded hover:opacity-70 transition-opacity"
