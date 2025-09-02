@@ -504,7 +504,7 @@
 								: 'y'}
 					</span>
 					<div class="ml-2 flex items-center gap-2">
-						<button class="arrow-btn" onclick={() => selectPet(pet.id)}>select</button>
+						<button class="arrow-btn btn-select" onclick={() => selectPet(pet.id)}>select</button>
 						<button class="arrow-btn" onclick={() => archivePet(pet.id)}>archive</button>
 					</div>
 				</div>
@@ -609,5 +609,12 @@
 		outline: none;
 		border-color: var(--petalytics-accent);
 		box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 35%, transparent);
+	}
+
+	/* Mobile: hide explicit select button to save space; row click selects */
+	@media (max-width: 768px) {
+		.btn-select {
+			display: none;
+		}
 	}
 </style>

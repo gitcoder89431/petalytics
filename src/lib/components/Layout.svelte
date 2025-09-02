@@ -156,18 +156,49 @@
 	}
 
 	@media (max-width: 768px) {
+		/* Panels should expand with content on mobile */
+		.frosted-panel {
+			overflow: visible;
+		}
+		/* Allow the page to scroll on mobile; don't lock to viewport height */
+		.desktop-container {
+			height: auto;
+			min-height: 100vh;
+			overflow: auto;
+		}
+
 		.main-layout {
 			flex-direction: column;
 			gap: 8px;
+			height: auto !important; /* override inline height */
+			min-height: 0;
 		}
 		.left-column {
 			width: 100%;
-			flex-direction: row;
-			height: 40%;
+			flex-direction: column; /* stack panels vertically on mobile */
+			height: auto;
 			gap: 8px;
 		}
+		/* Reset child panel sizing constraints for mobile */
+		.left-column .guardian-panel,
+		.left-column .pet-panel {
+			min-height: unset;
+			max-height: unset;
+			height: auto;
+		}
+		/* Let the viewport take remaining vertical space */
 		.viewport-column {
-			height: 60%;
+			flex: 1 1 auto;
+			min-height: 0;
+			/* ensure it's visible even if content is short */
+			/* height will expand with content; page scrolls */
+		}
+
+		/* Uncap inner CLI areas so content is visible on mobile */
+		:global(.guardian-panel .cli-content),
+		:global(.pet-panel .cli-content) {
+			max-height: none !important;
+			overflow: visible;
 		}
 	}
 </style>
