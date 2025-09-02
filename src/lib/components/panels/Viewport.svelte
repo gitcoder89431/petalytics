@@ -7,6 +7,7 @@
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
 	import RuixenInsights from '../ui/RuixenInsights.svelte';
 	import DataManager from '../ui/DataManager.svelte';
+	import Button from '../ui/Button.svelte';
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
 	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
@@ -295,11 +296,11 @@
 						</h3>
 						<p>Mark {selectedPet?.name} as passed away?</p>
 						<div class="flex justify-end gap-2">
-							<button class="button-secondary" onclick={() => uiHelpers.setView('dashboard')}
-								>Cancel</button
+							<Button variant="secondary" onclick={() => uiHelpers.setView('dashboard')}
+								>Cancel</Button
 							>
-							<button
-								class="button"
+							<Button
+								variant="primary"
 								onclick={() => {
 									if (selectedPet) {
 										petHelpers.archive(selectedPet.id);
@@ -308,7 +309,7 @@
 										}
 									}
 									uiHelpers.setView('dashboard');
-								}}>Confirm</button
+								}}>Confirm</Button
 							>
 						</div>
 					</div>
@@ -597,16 +598,16 @@
 
 								<!-- Actions -->
 								<div class="flex justify-end space-x-3">
-									<button
+									<Button
+										variant="secondary"
 										onclick={() => uiHelpers.setView('dashboard')}
-										class="button-secondary"
 										disabled={isSubmitting}
 									>
 										Cancel
-									</button>
-									<button
+									</Button>
+									<Button
+										variant="primary"
 										onclick={submitJournalEntry}
-										class="button flex items-center space-x-2"
 										disabled={!journalInput.trim() || isSubmitting}
 									>
 										{#if isSubmitting || $isAnalyzing}
@@ -618,7 +619,7 @@
 											<PenTool size={16} />
 											<span>Add Entry</span>
 										{/if}
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>
