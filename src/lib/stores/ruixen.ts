@@ -210,7 +210,9 @@ class Ruixen {
 						const today = new Date().toDateString();
 						const d = loadDailyCount();
 						if (getExhausted() === today || d.count >= DAILY_FREE_LIMIT) {
-							next.resolve(this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet)));
+							next.resolve(
+								this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet))
+							);
 							this.queue.shift();
 							this.queueSize.set(this.queue.length);
 							continue;

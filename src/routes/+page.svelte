@@ -49,8 +49,6 @@
 			</a>
 		</div>
 
-		<div class="mt-10 text-xs" style="color: var(--petalytics-subtle);">
-			 :: Petalytic ::
-		</div>
+		<div class="mt-10 text-xs" style="color: var(--petalytics-subtle);">:: Petalytic ::</div>
 	</main>
 </div>
