@@ -241,7 +241,7 @@
 			ageUnit: normalizeAgeUnit(newPet.ageUnit),
 			gender: normalizeGender(newPet.gender),
 			size: normalizeSize(newPet.size),
-			profileImageUrl: newPet.profileImageUrl || '/images/default-pet.png',
+			profileImageUrl: newPet.profileImageUrl || '',
 			createdAt: new Date().toISOString(),
 			journalEntries: [],
 		};

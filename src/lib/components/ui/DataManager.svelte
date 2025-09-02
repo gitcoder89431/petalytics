@@ -106,12 +106,12 @@
 							<div class="cli-row px-2 py-2">
 								<div class="flex items-center gap-2">
 									<img
-										src={pet.profileImageUrl || '/images/default-pet.png'}
+										src={pet.profileImageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSIxNiIgZmlsbD0iI0YzNEY0RiIvPjxzdmcgeD0iOCIgeT0iOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTUuMjUgNEM0LjU1OTY0IDQgNCA0LjU1OTY0IDQgNS4yNVYxMC43NUM0IDExLjQ0MDQgNC41NTk2NCAxMiA1LjI1IDEySDEwLjc1QzExLjQ0MDQgMTIgMTIgMTEuNDQwNCAxMiAxMC43NVY1LjI1QzEyIDQuNTU5NjQgMTEuNDQwNCA0IDEwLjc1IDRINS4yNVoiLz48L3N2Zz48L3N2Zz4='}
 										alt={pet.name}
 										class="w-8 h-8 rounded-full object-cover"
 										onerror={(e) => {
 											(e.target as HTMLImageElement).src =
-												'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiNGMzRGNEYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9IndoaXRlIj4KICA8cGF0aCBkPSJNNS4yNSA0QzQuNTU5NjQgNCA0IDQuNTU5NjQgNCA1LjI1VjEwLjc1QzQgMTEuNDQwNCA0LjU1OTY0IDEyIDUuMjUgMTJIMTAuNzVDMTEuNDQwNCAxMiAxMiAxMS40NDA0IDEyIDEwLjc1VjUuMjVDMTIgNC41NTk2NCAxMS40NDA0IDQgMTAuNzUgNEg1LjI1WiIvPgo8L3N2Zz4KPC9zdmc+';
+												'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSIxNiIgZmlsbD0iI0YzNEY0RiIvPjxzdmcgeD0iOCIgeT0iOCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTUuMjUgNEM0LjU1OTY0IDQgNCA0LjU1OTY0IDQgNS4yNVYxMC43NUM0IDExLjQ0MDQgNC41NTk2NCAxMiA1LjI1IDEySDEwLjc1QzExLjQ0MDQgMTIgMTIgMTEuNDQwNCAxMiAxMC43NVY1LjI1QzEyIDQuNTU5NjQgMTEuNDQwNCA0IDEwLjc1IDRINS4yNVoiLz48L3N2Zz48L3N2Zz4=';
 										}}
 									/>
 									<div>

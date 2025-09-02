@@ -14,6 +14,10 @@
 	import type { PetPanelData } from '$lib/types/Pet';
 	import type { JournalEntry } from '$lib/types/JournalEntry';
 
+	// Inline placeholder avatar (rounded square with simple mark)
+	const AVATAR_PLACEHOLDER =
+		'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSIxNiIgZmlsbD0iI0Q2REM2RSIvPjx0ZXh0IHg9IjI0IiB5PSIyOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFwcGxlIENvbG9yIEVtb2ppIiBmb250LXNpemU9IjE2IiBmaWxsPSIjRkZGIj7wn5i98J+YvTwvdGV4dD48L3N2Zz4=';
+
 	let selectedPet: PetPanelData | null = null;
 	let selectedPetId: string | null = null;
 	let pets: PetPanelData[] = [];
@@ -187,9 +191,12 @@
 					<div class="flex items-center space-x-3">
 						{#if selectedPet}
 							<img
-								src={selectedPet.profileImageUrl || '/images/default-pet.png'}
+								src={selectedPet.profileImageUrl || AVATAR_PLACEHOLDER}
 								alt={selectedPet.name}
 								class="w-12 h-12 rounded-full object-cover"
+								onerror={(e) => {
+									(e.target as HTMLImageElement).src = AVATAR_PLACEHOLDER;
+								}}
 							/>
 						{/if}
 						<div>
@@ -217,7 +224,7 @@
 					{#if currentView === 'memories' || currentView === 'dataManager'}
 						<div class="flex space-x-2">
 							<button
-								on:click={() => {
+								onclick={() => {
 									// return to dashboard; select first active pet if available
 									const firstActive = (pets || []).find((p) => !p.archived) || null;
 									if (firstActive) {
@@ -238,7 +245,7 @@
 								class="nav-button px-3 py-1 rounded-md text-sm"
 								data-active={currentView === 'dashboard'}
 								disabled={!selectedPet || isArchived(selectedPet)}
-								on:click={() => uiHelpers.setView('dashboard')}
+								onclick={() => uiHelpers.setView('dashboard')}
 							>
 								Dashboard
 							</button>
@@ -246,7 +253,7 @@
 								class="nav-button px-3 py-1 rounded-md text-sm"
 								data-active={currentView === 'journal'}
 								disabled={!selectedPet || isArchived(selectedPet)}
-								on:click={() => uiHelpers.setView('journal')}
+								onclick={() => uiHelpers.setView('journal')}
 							>
 								New Entry
 							</button>
@@ -254,7 +261,7 @@
 								class="nav-button px-3 py-1 rounded-md text-sm"
 								data-active={currentView === 'history'}
 								disabled={!selectedPet || isArchived(selectedPet)}
-								on:click={() => uiHelpers.setView('history')}
+								onclick={() => uiHelpers.setView('history')}
 							>
 								History
 							</button>
@@ -273,12 +280,12 @@
 						</h3>
 						<p>Mark {selectedPet?.name} as passed away?</p>
 						<div class="flex justify-end gap-2">
-							<button class="button-secondary" on:click={() => uiHelpers.setView('dashboard')}
+							<button class="button-secondary" onclick={() => uiHelpers.setView('dashboard')}
 								>Cancel</button
 							>
 							<button
 								class="button"
-								on:click={() => {
+								onclick={() => {
 									if (selectedPet) {
 										petHelpers.archive(selectedPet.id);
 										if (selectedPetId === selectedPet.id) {
@@ -587,14 +594,14 @@
 								<!-- Actions -->
 								<div class="flex justify-end space-x-3">
 									<button
-										on:click={() => uiHelpers.setView('dashboard')}
+										onclick={() => uiHelpers.setView('dashboard')}
 										class="button-secondary"
 										disabled={isSubmitting}
 									>
 										Cancel
 									</button>
 									<button
-										on:click={submitJournalEntry}
+										onclick={submitJournalEntry}
 										class="button flex items-center space-x-2"
 										disabled={!journalInput.trim() || isSubmitting}
 									>
@@ -623,7 +630,7 @@
 							<div class="empty-state text-center py-12">
 								<Calendar size={48} style="color: var(--petalytics-subtle);" class="mx-auto mb-4" />
 								<p class="text-lg mb-2" style="color: var(--petalytics-text);">No entries yet</p>
-								<button on:click={() => uiHelpers.setView('journal')} class="button">
+								<button onclick={() => uiHelpers.setView('journal')} class="button">
 									Write First Entry
 								</button>
 							</div>
