@@ -52,10 +52,6 @@ npm install
 npm run dev
 ```
 
-## 🎯 Contest Entry
-
-**Built for [Contest Name]** - Showcasing the power of AI in pet care with a privacy-first approach.
-
 ### Key Innovations
 
 - **BYOK Model** - No backend costs, users own their data
