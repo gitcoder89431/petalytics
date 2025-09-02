@@ -157,6 +157,16 @@ class Ruixen {
 				return;
 			}
 
+			// If daily free limit is exhausted for the chosen model, short-circuit to offline
+			if (isFreeModel(this.model)) {
+				const today = new Date().toDateString();
+				const d = loadDailyCount();
+				if (getExhausted() === today || d.count >= DAILY_FREE_LIMIT) {
+					resolve(this.offlineHeuristic(pet, fullEntry));
+					return;
+				}
+			}
+
 			// Else enqueue to respect rate limits
 			this.queue.push({ pet, entry, resolve, reject });
 			this.queueSize.set(this.queue.length);
@@ -195,6 +205,17 @@ class Ruixen {
 				}
 
 				if (!this.limiter.canRequest(this.model)) {
+					// If the daily free limit is exhausted, resolve offline immediately
+					if (isFreeModel(this.model)) {
+						const today = new Date().toDateString();
+						const d = loadDailyCount();
+						if (getExhausted() === today || d.count >= DAILY_FREE_LIMIT) {
+							next.resolve(this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet)));
+							this.queue.shift();
+							this.queueSize.set(this.queue.length);
+							continue;
+						}
+					}
 					const wait = this.limiter.msUntilAvailable();
 					await new Promise((r) => setTimeout(r, Math.min(wait, 1500)));
 					continue;
