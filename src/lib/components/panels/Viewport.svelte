@@ -66,7 +66,7 @@
 	}
 
 	onMount(() => {
-	// Reflect guardian API key validity for cloud capability
+		// Reflect guardian API key validity for cloud capability
 		guardianStore.subscribe((g) => {
 			apiKeyValid = !!g?.apiKeyValid && !!g?.apiKey;
 		});
@@ -187,7 +187,10 @@
 		} catch (e) {
 			const msg = String((e as Error)?.message || e);
 			if (/429|Rate limit exceeded/i.test(msg)) {
-				toast.info('Ruixen: Daily free limit reached', 'Try again tomorrow or add credits to OpenRouter');
+				toast.info(
+					'Ruixen: Daily free limit reached',
+					'Try again tomorrow or add credits to OpenRouter'
+				);
 			} else {
 				toast.error('Insight failed', (e as Error).message);
 			}
@@ -216,7 +219,10 @@
 		} catch (e) {
 			const msg = String((e as Error)?.message || e);
 			if (/429|Rate limit exceeded/i.test(msg)) {
-				toast.info('Ruixen: Daily free limit reached', 'Try again tomorrow or add credits to OpenRouter');
+				toast.info(
+					'Ruixen: Daily free limit reached',
+					'Try again tomorrow or add credits to OpenRouter'
+				);
 			} else {
 				toast.error('Weekly analysis failed', (e as Error).message);
 			}
@@ -563,11 +569,15 @@
 								<div class="flex gap-2 mb-3">
 									<Button
 										variant="secondary"
-										disabled={!selectedPet?.journalEntries?.length || runningInsight || isArchived(selectedPet)}
+										disabled={!selectedPet?.journalEntries?.length ||
+											runningInsight ||
+											isArchived(selectedPet)}
 										onclick={runLastEntryInsight}
 									>
 										{#if runningInsight}
-											<div class="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
+											<div
+												class="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"
+											></div>
 											<span>Running…</span>
 										{:else}
 											<span>Analyze latest entry</span>
@@ -579,7 +589,9 @@
 										onclick={runWeeklyCloud}
 									>
 										{#if runningWeekly}
-											<div class="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
+											<div
+												class="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"
+											></div>
 											<span>Weekly summary…</span>
 										{:else}
 											<span>Run 1‑week analysis</span>

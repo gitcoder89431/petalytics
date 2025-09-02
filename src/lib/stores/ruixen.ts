@@ -188,9 +188,7 @@ class Ruixen {
 				const next = this.queue[0];
 				if (!this.analyzer) {
 					// Fallback for entire queue
-					next.resolve(
-						this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet))
-					);
+					next.resolve(this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet)));
 					this.queue.shift();
 					this.queueSize.set(this.queue.length);
 					continue;
@@ -219,9 +217,7 @@ class Ruixen {
 						saveDailyCount({ date: today, count: DAILY_FREE_LIMIT });
 						this.dailyUsage.set(DAILY_FREE_LIMIT);
 					}
-					next.resolve(
-						this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet))
-					);
+					next.resolve(this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet)));
 				} finally {
 					this.queue.shift();
 					this.queueSize.set(this.queue.length);

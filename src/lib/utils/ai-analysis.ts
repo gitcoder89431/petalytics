@@ -23,7 +23,7 @@ export class AIAnalyzer {
 
 	async analyzeJournalEntry(pet: PetPanelData, entry: JournalEntry): Promise<AnalysisResult> {
 		const prompt = this.buildAnalysisPrompt(pet, entry);
-	const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
+		const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
 
 		if (typeof window !== 'undefined' && (import.meta as any)?.env?.DEV) {
 			console.debug('[Ruixen] Prompt (journal)', {
@@ -34,14 +34,14 @@ export class AIAnalyzer {
 		}
 
 		try {
-	    const response = await fetch(this.baseUrl, {
+			const response = await fetch(this.baseUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-		    apiKey: this.apiKey,
-		    model: this.model,
+					apiKey: this.apiKey,
+					model: this.model,
 					messages: [
 						{
 							role: 'system',
@@ -79,11 +79,12 @@ export class AIAnalyzer {
 	}
 
 	async analyzeWeeklySummary(pet: PetPanelData): Promise<string> {
-		const sevenDays = (pet.journalEntries || [])
-			.slice()
-			.filter((e) => Date.now() - new Date(e.date as any).getTime() <= 7 * 24 * 60 * 60 * 1000)
-			.map((e) => `- ${new Date(e.date as any).toLocaleDateString()}: ${e.content}`)
-			.join('\n') || 'No entries in last 7 days.';
+		const sevenDays =
+			(pet.journalEntries || [])
+				.slice()
+				.filter((e) => Date.now() - new Date(e.date as any).getTime() <= 7 * 24 * 60 * 60 * 1000)
+				.map((e) => `- ${new Date(e.date as any).toLocaleDateString()}: ${e.content}`)
+				.join('\n') || 'No entries in last 7 days.';
 
 		const prompt = `Summarize the last 7 days for ${pet.name} in 4-6 concise bullet points focused on mood, activity, appetite, and any warning signs.
 
@@ -96,20 +97,20 @@ STRICT RULES:
 PET: ${pet.name} (${pet.breed || pet.species || 'pet'}, ${pet.age ?? 'unknown'}y)
 LAST 7 DAYS:\n${sevenDays}`;
 
-	const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
-	const response = await fetch(this.baseUrl, {
+		const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
+		const response = await fetch(this.baseUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
-		apiKey: this.apiKey,
-		model: this.model,
+				apiKey: this.apiKey,
+				model: this.model,
 				messages: [
 					{
 						role: 'system',
 						content:
-							'You are a veterinary AI assistant. Be concise and factual; never write fiction or narrative prose. Use only provided inputs.'
+							'You are a veterinary AI assistant. Be concise and factual; never write fiction or narrative prose. Use only provided inputs.',
 					},
 					{ role: 'user', content: prompt },
 				],
@@ -206,10 +207,7 @@ If the entry lacks enough information, use conservative defaults (moodTrend: "st
 					let candidate = content.substring(braceIndex, lastBrace + 1);
 					candidate = candidate.replace(/,\s*([}\]])/g, '$1');
 					// Ensure summary is a closed string (fix common unterminated quote cases)
-					candidate = candidate.replace(
-						/("summary"\s*:\s*"[^"}]*)$/m,
-						(match) => match + '"'
-					);
+					candidate = candidate.replace(/("summary"\s*:\s*"[^"}]*)$/m, (match) => match + '"');
 					return JSON.parse(candidate);
 				}
 			}
@@ -223,7 +221,9 @@ If the entry lacks enough information, use conservative defaults (moodTrend: "st
 				.split('\n')[0]
 				.trim();
 			return {
-				summary: summary ? summary.slice(0, 180) + (summary.length > 180 ? '…' : '') : 'No summary available',
+				summary: summary
+					? summary.slice(0, 180) + (summary.length > 180 ? '…' : '')
+					: 'No summary available',
 				moodTrend: 'stable',
 				activityLevel: 'normal',
 				healthConcerns: [],
@@ -243,7 +243,8 @@ If the entry lacks enough information, use conservative defaults (moodTrend: "st
 	): AnalysisResult {
 		const safe = { ...res } as AnalysisResult;
 		const s = String(safe.summary || '').trim();
-		const looksLikeTitle = /:\s|—|–/.test(s) && /^[A-Z][^.!?]{5,60}$/.test(s.split(/[.!?]/)[0] || '');
+		const looksLikeTitle =
+			/:\s|—|–/.test(s) && /^[A-Z][^.!?]{5,60}$/.test(s.split(/[.!?]/)[0] || '');
 		const hasYearOrPerson = /(18|19|20)\d{2}/.test(s) || /\b[A-Z][a-z]+\s+[A-Z][a-z]+\b/.test(s);
 		const notAboutPet = /(diary|novel|chapter|story|keeper)/i.test(s);
 		const hasSpecialTokens = /<\|.*?\|>|```/.test(s);
@@ -284,16 +285,16 @@ If the entry lacks enough information, use conservative defaults (moodTrend: "st
 
 	async testConnection(): Promise<boolean> {
 		try {
-	    const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
-	    const response = await fetch(this.baseUrl, {
+			const referer = typeof window !== 'undefined' ? window.location.origin : undefined;
+			const response = await fetch(this.baseUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-		    apiKey: this.apiKey,
-		    model: this.model,
-		    messages: [{ role: 'user', content: 'test' }],
+					apiKey: this.apiKey,
+					model: this.model,
+					messages: [{ role: 'user', content: 'test' }],
 					max_tokens: 1,
 				}),
 			});

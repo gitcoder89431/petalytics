@@ -5,15 +5,7 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request, fetch }) => {
 	try {
 		const body = await request.json();
-		const {
-			apiKey,
-			model,
-			messages,
-			max_tokens,
-			temperature,
-			top_p,
-			stop,
-		} = body || {};
+		const { apiKey, model, messages, max_tokens, temperature, top_p, stop } = body || {};
 
 		if (!apiKey || typeof apiKey !== 'string') {
 			return json({ error: 'Missing apiKey' }, { status: 400 });
@@ -40,7 +32,10 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 
 		const text = await resp.text();
 		if (!resp.ok) {
-			return json({ error: 'Upstream error', status: resp.status, body: text }, { status: resp.status });
+			return json(
+				{ error: 'Upstream error', status: resp.status, body: text },
+				{ status: resp.status }
+			);
 		}
 		// Pass through upstream JSON
 		try {
@@ -51,6 +46,9 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		}
 	} catch (error: any) {
 		console.error('AI proxy error:', error);
-		return json({ error: 'Proxy failure', detail: String(error?.message || error) }, { status: 500 });
+		return json(
+			{ error: 'Proxy failure', detail: String(error?.message || error) },
+			{ status: 500 }
+		);
 	}
 };

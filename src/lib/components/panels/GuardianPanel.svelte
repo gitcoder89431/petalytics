@@ -2,7 +2,6 @@
 	import { onMount, tick } from 'svelte';
 	import { Terminal, ChevronRight } from 'lucide-svelte';
 	import { guardianHelpers } from '$lib/stores/guardian';
-	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis';
 	import { loadThemePreset, themePresets } from '$lib/stores/theme';
 	import { uiHelpers } from '$lib/stores/ui';
 	import { fetchOpenRouterModels } from '$lib/utils/ai-analysis';
