@@ -3,7 +3,20 @@
 > Your intelligent pet journal powered by AI. Track, analyze, and understand your furry friend's well-being.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-petalytics.vercel.app-blue)](https://petalytics.vercel.app)
-[![CI/CD](https://github.com/gitcoder89431/petalytics/workflows/CI/badge.svg)](https://github.com/gitcoder89431/petalytics/actions)
+[![CI](https://github.com/gitcoder89431/petalytics/actions/workflows/ci.yml/badge.svg)](https://github.com/gitcoder89431/petalytics/actions/workflows/ci.yml)
+
+## 🎥 Demo
+
+![Petalytics demo](./demo_full.gif)
+
+## ▲ Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fgitcoder89431%2Fpetalytics)
+
+Notes:
+
+- No server secrets needed; set your OpenRouter API key inside the app (Guardian panel).
+- Default free model is enforced: `openai/gpt-oss-120b:free`.
 
 ## ✨ Features
 
@@ -138,7 +151,7 @@ npm run check        # Type checking
 
 ### Architecture
 
-```
+```text
 ┌─────────────────┬─────────────────┐
 │ Guardian Panel  │                 │
 ├─────────────────┤   Main Viewport │
@@ -171,4 +184,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Made with ❤️ for pets and their humans**
+Made with ❤️ for pets and their humans.
