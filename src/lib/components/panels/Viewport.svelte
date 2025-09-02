@@ -8,6 +8,7 @@
 	import RuixenInsights from '../ui/RuixenInsights.svelte';
 	import DataManager from '../ui/DataManager.svelte';
 	import Button from '../ui/Button.svelte';
+	import { toast } from '$lib/stores/toast';
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
 	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
@@ -29,7 +30,11 @@
 	let selectedActivity = '';
 	let isSubmitting = false;
 	let loading = false;
-	let aiEnabled = true;
+	let apiKeyValid = false;
+	let runningInsight = false;
+	let runningWeekly = false;
+	let weeklyCloudText: string | null = null;
+	let weeklyForPetId: string | null = null;
 
 	// Computed values
 	$: lastEntry = selectedPet?.journalEntries?.length
@@ -61,9 +66,9 @@
 	}
 
 	onMount(() => {
-		// Reflect guardian preference for Ruixen insights
+	// Reflect guardian API key validity for cloud capability
 		guardianStore.subscribe((g) => {
-			aiEnabled = !!(g && g.preferences && g.preferences.aiInsights);
+			apiKeyValid = !!g?.apiKeyValid && !!g?.apiKey;
 		});
 
 		// Subscribe first so incoming loads propagate into state
@@ -92,6 +97,11 @@
 		selectedPetStore.subscribe((petId) => {
 			selectedPetId = petId;
 			selectedPet = petId ? pets.find((p) => p.id === petId) || null : null;
+			// Clear weekly cloud text if switching pets
+			if (weeklyForPetId && petId !== weeklyForPetId) {
+				weeklyCloudText = null;
+				weeklyForPetId = null;
+			}
 			// Keep current view unless user explicitly opened memories.
 			// Disable actions via disabled buttons when archived is selected.
 		});
@@ -126,34 +136,7 @@
 			// Add entry to pet
 			petHelpers.addJournalEntry(selectedPet.id, entry);
 
-			// Analyze with Ruixen orchestrator (rate-limited with offline fallback) if enabled
-			if (aiEnabled) {
-				try {
-					const res = await ruixenHelpers.analyzeDaily(selectedPet, entry);
-					if (res) {
-						analysisStore.update((cache) => ({ ...cache, [entry.id]: res }));
-						// Persist onto the entry so it survives reloads and exports
-						const petNow = petHelpers.getPet(selectedPet.id);
-						if (petNow) {
-							const updatedEntries = (petNow.journalEntries || []).map((e) =>
-								e.id === entry.id
-									? {
-											...e,
-											aiAnalysis: {
-												...res,
-												modelId: (selectedPet as any)?.model || undefined,
-												analyzedAt: new Date().toISOString(),
-											},
-										}
-									: e
-							);
-							petHelpers.update(petNow.id, { journalEntries: updatedEntries });
-						}
-					}
-				} catch (error) {
-					console.error('Ruixen analysis failed:', error);
-				}
-			}
+			// Skip automatic analysis; allow manual triggers via buttons
 
 			// Reset form
 			journalInput = '';
@@ -167,6 +150,78 @@
 			console.error('Error submitting entry:', error);
 		} finally {
 			isSubmitting = false;
+		}
+	}
+
+	async function runLastEntryInsight() {
+		if (!selectedPet || !(selectedPet.journalEntries || []).length) return;
+		runningInsight = true;
+		try {
+			if (!apiKeyValid) {
+				toast.info('Ruixen is offline', 'Set your API key in Guardian to run cloud analysis');
+			}
+			const res = await ruixenHelpers.analyzeLastEntryNow(selectedPet);
+			const last = (selectedPet.journalEntries || []).slice(-1)[0];
+			if (res && last) {
+				analysisStore.update((cache) => ({ ...cache, [last.id]: res }));
+				const petNow = petHelpers.getPet(selectedPet.id);
+				if (petNow) {
+					const updatedEntries = (petNow.journalEntries || []).map((e) =>
+						e.id === last.id
+							? {
+									...e,
+									aiAnalysis: {
+										...res,
+										modelId: (selectedPet as any)?.model || undefined,
+										analyzedAt: new Date().toISOString(),
+									},
+								}
+							: e
+					);
+					petHelpers.update(petNow.id, { journalEntries: updatedEntries });
+				}
+				toast.success('Ruixen insight ready', 'Latest entry analyzed');
+			} else {
+				toast.info('No entry to analyze');
+			}
+		} catch (e) {
+			const msg = String((e as Error)?.message || e);
+			if (/429|Rate limit exceeded/i.test(msg)) {
+				toast.info('Ruixen: Daily free limit reached', 'Try again tomorrow or add credits to OpenRouter');
+			} else {
+				toast.error('Insight failed', (e as Error).message);
+			}
+		} finally {
+			runningInsight = false;
+		}
+	}
+
+	async function runWeeklyCloud() {
+		if (!selectedPet) return;
+		runningWeekly = true;
+		weeklyCloudText = null;
+		try {
+			if (!apiKeyValid) {
+				toast.info('Ruixen is offline', 'Weekly cloud analysis requires an API key');
+				return;
+			}
+			const text = await ruixenHelpers.analyzeWeeklyCloud(selectedPet);
+			if (text) {
+				weeklyCloudText = text;
+				weeklyForPetId = selectedPet.id;
+				toast.success('Weekly cloud analysis ready');
+			} else {
+				toast.warning('Weekly analysis unavailable', 'Please try again later');
+			}
+		} catch (e) {
+			const msg = String((e as Error)?.message || e);
+			if (/429|Rate limit exceeded/i.test(msg)) {
+				toast.info('Ruixen: Daily free limit reached', 'Try again tomorrow or add credits to OpenRouter');
+			} else {
+				toast.error('Weekly analysis failed', (e as Error).message);
+			}
+		} finally {
+			runningWeekly = false;
 		}
 	}
 </script>
@@ -505,24 +560,46 @@
 									<Brain size={16} class="mr-2" style="color: var(--petalytics-accent);" />
 									Ruixen Insights
 								</h3>
+								<div class="flex gap-2 mb-3">
+									<Button
+										variant="secondary"
+										disabled={!selectedPet?.journalEntries?.length || runningInsight || isArchived(selectedPet)}
+										onclick={runLastEntryInsight}
+									>
+										{#if runningInsight}
+											<div class="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
+											<span>Running…</span>
+										{:else}
+											<span>Analyze latest entry</span>
+										{/if}
+									</Button>
+									<Button
+										variant="secondary"
+										disabled={!selectedPet || runningWeekly || isArchived(selectedPet)}
+										onclick={runWeeklyCloud}
+									>
+										{#if runningWeekly}
+											<div class="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
+											<span>Weekly summary…</span>
+										{:else}
+											<span>Run 1‑week analysis</span>
+										{/if}
+									</Button>
+								</div>
 								{#if selectedPet.journalEntries.length === 0}
 									<p class="text-sm" style="color: var(--petalytics-subtle);">
 										Add journal entries to get AI-powered insights about {selectedPet.name}'s
 										well-being.
 									</p>
-								{:else if aiEnabled}
-									<AIInsightsCard petId={selectedPet.id} entryId={lastEntry?.id} compact={true} />
 								{:else}
-									<p class="text-xs" style="color: var(--petalytics-subtle);">
-										Ruixen: offline (enable insights or add API key)
-									</p>
+									<AIInsightsCard petId={selectedPet.id} entryId={lastEntry?.id} compact={true} />
 								{/if}
 							</div>
 						</div>
 
 						{#if selectedPet}
 							<div class="mt-4">
-								<RuixenInsights pet={selectedPet} />
+								<RuixenInsights pet={selectedPet} cloudWeekly={weeklyCloudText} />
 							</div>
 						{/if}
 					</div>

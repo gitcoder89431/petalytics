@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import { guardianStore } from './guardian.js';
-import type { PetPanelData } from '../types/Pet.js';
+import type { PetPanelData, PetJournalEntry } from '../types/Pet.js';
 import type { JournalEntry } from '../types/JournalEntry.js';
 import { AIAnalyzer, type AnalysisResult } from '$lib/utils/ai-analysis';
 
@@ -8,7 +8,7 @@ import { AIAnalyzer, type AnalysisResult } from '$lib/utils/ai-analysis';
 
 type QueueTask = {
 	pet: PetPanelData;
-	entry: JournalEntry;
+	entry: JournalEntry | PetJournalEntry;
 	resolve: (r: AnalysisResult | null) => void;
 	reject: (e: any) => void;
 };
@@ -16,6 +16,7 @@ type QueueTask = {
 const MINUTE_LIMIT = 18; // under 20/min hard limit
 const DAILY_FREE_LIMIT = 45; // under 50/day for :free when <10 credits
 const DAILY_USAGE_KEY = 'openrouter_daily_usage';
+const DAILY_EXHAUSTED_KEY = 'openrouter_daily_exhausted';
 
 function isBrowser() {
 	return typeof window !== 'undefined';
@@ -46,6 +47,22 @@ function saveDailyCount(next: { date: string; count: number }) {
 	} catch {}
 }
 
+function getExhausted(): string | null {
+	if (!isBrowser()) return null;
+	try {
+		return localStorage.getItem(DAILY_EXHAUSTED_KEY);
+	} catch {
+		return null;
+	}
+}
+
+function setExhausted(today: string) {
+	if (!isBrowser()) return;
+	try {
+		localStorage.setItem(DAILY_EXHAUSTED_KEY, today);
+	} catch {}
+}
+
 class RateLimiter {
 	private lastMinute: number[] = [];
 	private getDaily = loadDailyCount;
@@ -58,6 +75,8 @@ class RateLimiter {
 		if (this.lastMinute.length >= MINUTE_LIMIT) return false;
 
 		if (isFreeModel(model)) {
+			const today = new Date().toDateString();
+			if (getExhausted() === today) return false;
 			const d = this.getDaily();
 			if (d.count >= DAILY_FREE_LIMIT) return false;
 		}
@@ -86,7 +105,7 @@ class RateLimiter {
 
 class Ruixen {
 	private apiKey = '';
-	private model = 'openai/gpt-oss-20b:free';
+	private model = 'openai/gpt-oss-120b:free';
 	private analyzer: AIAnalyzer | null = null;
 	private limiter = new RateLimiter();
 	private queue: QueueTask[] = [];
@@ -99,16 +118,21 @@ class Ruixen {
 	constructor() {
 		guardianStore.subscribe((g) => {
 			this.apiKey = g.apiKey || '';
-			this.model = (g as any).model || 'openai/gpt-oss-20b:free';
+			// Hard-enforce free model to avoid non-free calls
+			this.model = 'openai/gpt-oss-120b:free';
 			this.analyzer = g.apiKey && g.apiKeyValid ? new AIAnalyzer(g.apiKey, this.model) : null;
 		});
 	}
 
-	requestAnalysis(pet: PetPanelData, entry: JournalEntry): Promise<AnalysisResult | null> {
+	requestAnalysis(
+		pet: PetPanelData,
+		entry: JournalEntry | PetJournalEntry
+	): Promise<AnalysisResult | null> {
 		return new Promise((resolve, reject) => {
+			const fullEntry = this.toJournalEntry(entry, pet);
 			// If cannot make requests at all, return a lightweight offline hint
 			if (!this.analyzer) {
-				resolve(this.offlineHeuristic(pet, entry));
+				resolve(this.offlineHeuristic(pet, fullEntry));
 				return;
 			}
 
@@ -117,11 +141,18 @@ class Ruixen {
 				this.limiter.record(this.model);
 				this.dailyUsage.set(loadDailyCount().count);
 				this.analyzer
-					.analyzeJournalEntry(pet, entry)
+					.analyzeJournalEntry(pet, fullEntry)
 					.then(resolve)
 					.catch((e) => {
 						console.error('Ruixen immediate analysis failed:', e);
-						resolve(this.offlineHeuristic(pet, entry));
+						const msg = String((e as Error)?.message || e);
+						if (msg.includes('429') || /Rate limit exceeded/i.test(msg)) {
+							const today = new Date().toDateString();
+							setExhausted(today);
+							saveDailyCount({ date: today, count: DAILY_FREE_LIMIT });
+							this.dailyUsage.set(DAILY_FREE_LIMIT);
+						}
+						resolve(this.offlineHeuristic(pet, fullEntry));
 					});
 				return;
 			}
@@ -133,6 +164,22 @@ class Ruixen {
 		});
 	}
 
+	async analyzeLastEntryNow(pet: PetPanelData): Promise<AnalysisResult | null> {
+		const entry = (pet.journalEntries || []).slice(-1)[0];
+		if (!entry) return null;
+		return this.requestAnalysis(pet, entry);
+	}
+
+	async analyzeWeeklyCloud(pet: PetPanelData): Promise<string | null> {
+		if (!this.analyzer) return null;
+		try {
+			return await this.analyzer.analyzeWeeklySummary(pet);
+		} catch (e) {
+			console.error('Weekly cloud analysis failed:', e);
+			return null;
+		}
+	}
+
 	private runQueue() {
 		if (this.running) return;
 		this.running = true;
@@ -141,7 +188,9 @@ class Ruixen {
 				const next = this.queue[0];
 				if (!this.analyzer) {
 					// Fallback for entire queue
-					next.resolve(this.offlineHeuristic(next.pet, next.entry));
+					next.resolve(
+						this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet))
+					);
 					this.queue.shift();
 					this.queueSize.set(this.queue.length);
 					continue;
@@ -156,11 +205,23 @@ class Ruixen {
 				this.limiter.record(this.model);
 				this.dailyUsage.set(loadDailyCount().count);
 				try {
-					const res = await this.analyzer.analyzeJournalEntry(next.pet, next.entry);
+					const res = await this.analyzer.analyzeJournalEntry(
+						next.pet,
+						this.toJournalEntry(next.entry, next.pet)
+					);
 					next.resolve(res);
 				} catch (e) {
 					console.error('Ruixen queued analysis failed:', e);
-					next.resolve(this.offlineHeuristic(next.pet, next.entry));
+					const msg = String((e as Error)?.message || e);
+					if (msg.includes('429') || /Rate limit exceeded/i.test(msg)) {
+						const today = new Date().toDateString();
+						setExhausted(today);
+						saveDailyCount({ date: today, count: DAILY_FREE_LIMIT });
+						this.dailyUsage.set(DAILY_FREE_LIMIT);
+					}
+					next.resolve(
+						this.offlineHeuristic(next.pet, this.toJournalEntry(next.entry, next.pet))
+					);
 				} finally {
 					this.queue.shift();
 					this.queueSize.set(this.queue.length);
@@ -169,6 +230,29 @@ class Ruixen {
 			this.running = false;
 		};
 		loop();
+	}
+
+	private toJournalEntry(entry: JournalEntry | PetJournalEntry, pet: PetPanelData): JournalEntry {
+		const maybe = entry as JournalEntry;
+		if (typeof (maybe as any).type === 'string' && typeof maybe.title === 'string') {
+			return maybe;
+		}
+		const pje = entry as PetJournalEntry;
+		const when = new Date(pje.date as any);
+		return {
+			id: pje.id,
+			petId: pet.id,
+			type: 'general',
+			title: `${pet.name} journal entry`,
+			content: pje.content,
+			date: when,
+			photos: [],
+			tags: [],
+			mood: undefined,
+			aiAnalysis: typeof pje.aiAnalysis === 'object' ? (pje.aiAnalysis as any) : undefined,
+			createdAt: when,
+			updatedAt: when,
+		};
 	}
 
 	// Lightweight local heuristic when we can’t call the API
@@ -321,6 +405,12 @@ export const ruixen = new Ruixen();
 export const ruixenHelpers = {
 	analyzeDaily(pet: PetPanelData, entry: JournalEntry) {
 		return ruixen.requestAnalysis(pet, entry);
+	},
+	analyzeLastEntryNow(pet: PetPanelData) {
+		return ruixen.analyzeLastEntryNow(pet);
+	},
+	analyzeWeeklyCloud(pet: PetPanelData) {
+		return ruixen.analyzeWeeklyCloud(pet);
 	},
 	weeklySummary(pet: PetPanelData) {
 		return ruixen.weeklySummary(pet);

@@ -12,10 +12,7 @@ let analyzer: AIAnalyzer | null = null;
 // Initialize analyzer when API key is available
 guardianStore.subscribe((guardian) => {
 	if (guardian.apiKey && guardian.apiKeyValid) {
-		analyzer = new AIAnalyzer(
-			guardian.apiKey,
-			(guardian as any).model || 'openai/gpt-oss-20b:free'
-		);
+		analyzer = new AIAnalyzer(guardian.apiKey, 'openai/gpt-oss-120b:free');
 	} else {
 		analyzer = null;
 	}

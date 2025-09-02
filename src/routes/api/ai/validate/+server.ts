@@ -9,20 +9,14 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ valid: false, error: 'Invalid API key format' }, { status: 400 });
 		}
 
-		// Test API key with a simple request to OpenRouter
-		const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-			method: 'POST',
+		// Validate by listing models (no token usage, broadly allowed)
+		const response = await fetch('https://openrouter.ai/api/v1/models', {
+			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${apiKey}`,
 				'Content-Type': 'application/json',
-				'HTTP-Referer': 'https://petalytics.vercel.app',
 				'X-Title': 'Petalytics',
 			},
-			body: JSON.stringify({
-				model: 'openai/gpt-3.5-turbo',
-				messages: [{ role: 'user', content: 'test' }],
-				max_tokens: 1,
-			}),
 		});
 
 		if (response.ok) {

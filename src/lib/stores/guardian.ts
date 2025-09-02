@@ -7,10 +7,9 @@ const STORAGE_KEY = 'petalytics-guardian';
 const defaultGuardian = {
 	name: '',
 	apiKey: '',
-	model: 'openai/gpt-oss-20b:free',
+	model: 'openai/gpt-oss-120b:free',
 	preferences: {
 		dailyReminders: false,
-		aiInsights: false,
 		notifications: true,
 	},
 	apiKeyValid: false,
@@ -73,10 +72,7 @@ export const guardianHelpers = {
 				...current,
 				apiKey,
 				apiKeyValid: true,
-				preferences: {
-					...current.preferences,
-					aiInsights: true, // auto-enable insights when a valid API key is set
-				},
+				model: 'openai/gpt-oss-120b:free',
 			};
 			this.save(updated);
 			return updated;

@@ -11,10 +11,6 @@
 	let prevApiKey = '';
 	let apiKeyEl: HTMLInputElement | null = null;
 	let guardianName = '';
-	// Preferences trimmed to real features; remove unused reminders/notifications.
-	let preferences: { aiInsights: boolean } = {
-		aiInsights: true,
-	};
 
 	let apiKeyStatus = 'unchecked'; // unchecked, checking, valid, invalid
 
@@ -28,6 +24,7 @@
 
 	// OpenRouter model selection (dynamic; fallback list shown until fetched)
 	let modelList: string[] = [
+		'openai/gpt-oss-120b:free',
 		'openai/gpt-oss-20b:free',
 		'mistralai/mixtral-8x7b-instruct:free',
 		'google/gemma-2-9b-it:free',
@@ -95,7 +92,6 @@
 		if (saved) {
 			guardianName = saved.name || '';
 			apiKeyInput = saved.apiKey || '';
-			preferences = { ...preferences, ...saved.preferences };
 		}
 
 		// Get current theme from localStorage
@@ -119,12 +115,6 @@
 		currentThemeKey = themeKeys[themeIndex];
 		// Apply via store (persists to localStorage and updates CSS vars)
 		loadThemePreset(currentThemeKey);
-	}
-
-	function togglePreference(key: keyof typeof preferences) {
-		// currently only ai_insights is supported
-		(preferences as any)[key] = !(preferences as any)[key];
-		saveGuardianInfo();
 	}
 
 	function startEdit(field: string) {
@@ -172,25 +162,17 @@
 		apiKeyStatus = 'checking';
 
 		try {
-			// First try the AI analysis helper for more direct validation
-			const isValid = await aiAnalysisHelpers.testConnection();
-			if (isValid) {
+			const response = await fetch('/api/ai/validate', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ apiKey: apiKeyInput }),
+			});
+
+			if (response.ok) {
 				apiKeyStatus = 'valid';
 				guardianHelpers.updateApiKey(apiKeyInput);
 			} else {
-				// Fallback to backend validation if direct test fails
-				const response = await fetch('/api/ai/validate', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ apiKey: apiKeyInput }),
-				});
-
-				if (response.ok) {
-					apiKeyStatus = 'valid';
-					guardianHelpers.updateApiKey(apiKeyInput);
-				} else {
-					apiKeyStatus = 'invalid';
-				}
+				apiKeyStatus = 'invalid';
 			}
 		} catch (error) {
 			apiKeyStatus = 'invalid';
@@ -201,11 +183,8 @@
 		guardianHelpers.update({
 			name: guardianName,
 			apiKey: apiKeyInput,
-			preferences: preferences,
 		});
 	}
-
-	// removed handlePreferenceChange; inline save in togglePreference
 
 	// Keyboard activate handler for elements with role="button"
 	function handleActivate(e: KeyboardEvent, action: () => void) {
@@ -354,34 +333,6 @@
 			</div>
 		</div>
 
-		<!-- Preferences: only ai_insights -->
-		<div
-			class="cli-row px-2 py-1"
-			role="button"
-			tabindex="0"
-			aria-pressed={preferences.aiInsights}
-			onclick={() => togglePreference('aiInsights')}
-			onkeydown={(e) => handleActivate(e, () => togglePreference('aiInsights'))}
-		>
-			<span class="label" style="color: var(--petalytics-foam);">ai_insights</span>
-			<span class="value" style="color: var(--petalytics-text);">
-				{#if preferences.aiInsights}
-					{guardianHelpers.load()?.apiKeyValid ? 'cloud' : 'offline'}
-				{:else}
-					offline
-				{/if}
-			</span>
-			<span
-				class="ml-2"
-				style="color: {preferences.aiInsights
-					? guardianHelpers.load()?.apiKeyValid
-						? 'var(--petalytics-iris)'
-						: 'var(--petalytics-subtle)'
-					: 'var(--petalytics-subtle)'};"
-				>{preferences.aiInsights && guardianHelpers.load()?.apiKeyValid ? '☁︎' : '○'}</span
-			>
-		</div>
-
 		<!-- Separator line -->
 		<div class="my-3">
 			<div class="border-t" style="border-color: var(--petalytics-border);"></div>
@@ -427,10 +378,6 @@
 		background: var(--petalytics-highlight-med);
 		border-color: var(--petalytics-accent);
 		box-shadow: 0 0 0 2px color-mix(in oklab, var(--petalytics-accent) 40%, transparent);
-	}
-	.cli-row[aria-pressed='true'] {
-		background: var(--petalytics-highlight-high);
-		border-color: var(--petalytics-accent);
 	}
 	.label {
 		color: var(--petalytics-foam);

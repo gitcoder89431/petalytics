@@ -18,7 +18,7 @@
 	$: ruixenState = (() => {
 		const hasKey = Boolean($guardianStore?.apiKey) && Boolean($guardianStore?.apiKeyValid);
 		if (!hasKey) return { label: 'Needs API key', color: '--petalytics-love' };
-		const model = ($guardianStore as any)?.model || 'openai/gpt-oss-20b:free';
+		const model = 'openai/gpt-oss-120b:free';
 		const isFree = /:free$/i.test(model);
 		const daily = Number($ruixenDaily || 0);
 		const q = Number($ruixenQueue || 0);

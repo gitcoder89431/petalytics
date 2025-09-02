@@ -13,7 +13,6 @@ export interface Guardian {
 	model?: string;
 	preferences: {
 		dailyReminders: boolean;
-		aiInsights: boolean;
 		notifications: boolean;
 	};
 	apiKeyValid?: boolean;

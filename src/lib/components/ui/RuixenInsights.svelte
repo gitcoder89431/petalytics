@@ -4,6 +4,7 @@
 	import { ruixenHelpers } from '$lib/stores/ruixen';
 
 	export let pet: PetPanelData;
+	export let cloudWeekly: string | null = null;
 
 	let ws = ruixenHelpers.weeklySummary(pet);
 	let tips = ruixenHelpers.speciesInsights(pet);
@@ -32,12 +33,16 @@
 			<span class="ml-2 font-semibold" style="color: var(--petalytics-text);">{ws.title}</span>
 		</div>
 		<div class="text-sm space-y-1" style="color: var(--petalytics-text);">
-			<ul class="pl-4 space-y-1" style="list-style: disc;">
-				<li><span class="opacity-70">Energy:</span> {ws.energy} trend</li>
-				<li><span class="opacity-70">Appetite:</span> {ws.appetite}</li>
-				<li><span class="opacity-70">Social:</span> {ws.social}</li>
-				<li><span class="opacity-70">Recommendation:</span> {ws.recommendation}</li>
-			</ul>
+			{#if cloudWeekly}
+				<div class="whitespace-pre-wrap">{cloudWeekly}</div>
+			{:else}
+				<ul class="pl-4 space-y-1" style="list-style: disc;">
+					<li><span class="opacity-70">Energy:</span> {ws.energy} trend</li>
+					<li><span class="opacity-70">Appetite:</span> {ws.appetite}</li>
+					<li><span class="opacity-70">Social:</span> {ws.social}</li>
+					<li><span class="opacity-70">Recommendation:</span> {ws.recommendation}</li>
+				</ul>
+			{/if}
 		</div>
 	</div>
 

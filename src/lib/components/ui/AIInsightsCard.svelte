@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Brain, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-svelte';
-	import { aiAnalysisHelpers } from '$lib/stores/ai-analysis';
+	import { analysisStore } from '$lib/stores/ai-analysis';
 	import type { AnalysisResult } from '$lib/utils/ai-analysis';
 
 	export let entryId = '';
@@ -9,9 +9,8 @@
 
 	let analysis: AnalysisResult | null = null;
 
-	$: if (entryId) {
-		analysis = aiAnalysisHelpers.getAnalysis(entryId);
-	}
+	// React to analysis store updates and entry changes
+	$: analysis = entryId ? ($analysisStore[entryId] as AnalysisResult | undefined) || null : null;
 </script>
 
 {#if analysis}
