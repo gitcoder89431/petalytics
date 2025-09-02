@@ -10,7 +10,7 @@ const defaultGuardian = {
 	model: 'openai/gpt-oss-20b:free',
 	preferences: {
 		dailyReminders: false,
-		aiInsights: true,
+		aiInsights: false,
 		notifications: true,
 	},
 	apiKeyValid: false,
@@ -69,7 +69,15 @@ export const guardianHelpers = {
 	// Update API key specifically
 	updateApiKey(apiKey: string) {
 		guardianStore.update((current) => {
-			const updated = { ...current, apiKey, apiKeyValid: true };
+			const updated = {
+				...current,
+				apiKey,
+				apiKeyValid: true,
+				preferences: {
+					...current.preferences,
+					aiInsights: true, // auto-enable insights when a valid API key is set
+				},
+			};
 			this.save(updated);
 			return updated;
 		});

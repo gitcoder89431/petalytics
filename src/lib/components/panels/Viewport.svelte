@@ -10,6 +10,7 @@
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
 	import { rightPanelView, uiHelpers } from '$lib/stores/ui';
+	import { guardianStore } from '$lib/stores/guardian';
 	import type { RightPanelView } from '$lib/stores/ui';
 	import type { PetPanelData } from '$lib/types/Pet';
 	import type { JournalEntry } from '$lib/types/JournalEntry';
@@ -27,6 +28,7 @@
 	let selectedActivity = '';
 	let isSubmitting = false;
 	let loading = false;
+	let aiEnabled = true;
 
 	// Computed values
 	$: lastEntry = selectedPet?.journalEntries?.length
@@ -58,6 +60,11 @@
 	}
 
 	onMount(() => {
+		// Reflect guardian preference for Ruixen insights
+		guardianStore.subscribe((g) => {
+			aiEnabled = !!(g && g.preferences && g.preferences.aiInsights);
+		});
+
 		// Subscribe first so incoming loads propagate into state
 		petStore.subscribe((list) => {
 			pets = list || [];
@@ -118,31 +125,33 @@
 			// Add entry to pet
 			petHelpers.addJournalEntry(selectedPet.id, entry);
 
-			// Analyze with Ruixen orchestrator (rate-limited with offline fallback)
-			try {
-				const res = await ruixenHelpers.analyzeDaily(selectedPet, entry);
-				if (res) {
-					analysisStore.update((cache) => ({ ...cache, [entry.id]: res }));
-					// Persist onto the entry so it survives reloads and exports
-					const petNow = petHelpers.getPet(selectedPet.id);
-					if (petNow) {
-						const updatedEntries = (petNow.journalEntries || []).map((e) =>
-							e.id === entry.id
-								? {
-										...e,
-										aiAnalysis: {
-											...res,
-											modelId: (selectedPet as any)?.model || undefined,
-											analyzedAt: new Date().toISOString(),
-										},
-									}
-								: e
-						);
-						petHelpers.update(petNow.id, { journalEntries: updatedEntries });
+			// Analyze with Ruixen orchestrator (rate-limited with offline fallback) if enabled
+			if (aiEnabled) {
+				try {
+					const res = await ruixenHelpers.analyzeDaily(selectedPet, entry);
+					if (res) {
+						analysisStore.update((cache) => ({ ...cache, [entry.id]: res }));
+						// Persist onto the entry so it survives reloads and exports
+						const petNow = petHelpers.getPet(selectedPet.id);
+						if (petNow) {
+							const updatedEntries = (petNow.journalEntries || []).map((e) =>
+								e.id === entry.id
+									? {
+											...e,
+											aiAnalysis: {
+												...res,
+												modelId: (selectedPet as any)?.model || undefined,
+												analyzedAt: new Date().toISOString(),
+											},
+										}
+									: e
+							);
+							petHelpers.update(petNow.id, { journalEntries: updatedEntries });
+						}
 					}
+				} catch (error) {
+					console.error('Ruixen analysis failed:', error);
 				}
-			} catch (error) {
-				console.error('Ruixen analysis failed:', error);
 			}
 
 			// Reset form
@@ -170,16 +179,22 @@
 			<Skeleton height="h-6" />
 			<Skeleton height="h-4" />
 		</div>
-	{:else if !selectedPet && currentView !== 'memories'}
-		<EmptyState
-			icon="file-text"
-			title="No pet selected"
-			description="Select a pet from the left panel to view details, add journal entries, and see AI insights."
-			actionText="Add a Pet"
-			onAction={() => {
-				uiHelpers.openCreatePetForm();
-			}}
-		/>
+	{:else if !selectedPet && currentView !== 'memories' && currentView !== 'dataManager'}
+		<div class="h-full grid place-items-center">
+			<EmptyState
+				icon="file-text"
+				title="No pet selected"
+				description="Select a pet from the left panel to view details, add journal entries, and see Ruixen insights."
+				actionText="Import Data"
+				onAction={() => {
+					uiHelpers.setView('dataManager');
+				}}
+				secondaryActionText="Add a Pet"
+				onSecondaryAction={() => {
+					uiHelpers.openCreatePetForm();
+				}}
+			/>
+		</div>
 	{:else}
 		<div class="pet-viewport h-full flex flex-col">
 			<!-- Header with pet info and navigation -->
@@ -374,21 +389,6 @@
 					<!-- Data Manager full-width in right panel -->
 					<div class="space-y-4 font-mono">
 						<div
-							class="rounded p-3"
-							style="background: color-mix(in oklab, var(--petalytics-overlay) 60%, transparent); border: 1px solid var(--petalytics-border);"
-						>
-							<div class="flex items-center justify-between">
-								<div>
-									<div class="text-base font-semibold" style="color: var(--petalytics-text);">
-										Data Manager
-									</div>
-									<div class="text-xs" style="color: var(--petalytics-subtle);">
-										Backup, export, and import
-									</div>
-								</div>
-							</div>
-						</div>
-						<div
 							class="p-2 rounded"
 							style="background: var(--petalytics-surface); border: 1px solid var(--petalytics-border);"
 						>
@@ -502,15 +502,19 @@
 									style="color: var(--petalytics-text);"
 								>
 									<Brain size={16} class="mr-2" style="color: var(--petalytics-accent);" />
-									AI Insights (Ruixen)
+									Ruixen Insights
 								</h3>
 								{#if selectedPet.journalEntries.length === 0}
 									<p class="text-sm" style="color: var(--petalytics-subtle);">
 										Add journal entries to get AI-powered insights about {selectedPet.name}'s
 										well-being.
 									</p>
+								{:else if aiEnabled}
+									<AIInsightsCard petId={selectedPet.id} entryId={lastEntry?.id} compact={true} />
 								{:else}
-									<AIInsightsCard petId={selectedPet.id} entryId={lastEntry?.id} />
+									<p class="text-xs" style="color: var(--petalytics-subtle);">
+										Ruixen: offline (enable insights or add API key)
+									</p>
 								{/if}
 							</div>
 						</div>

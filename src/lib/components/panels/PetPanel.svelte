@@ -288,7 +288,7 @@
 
 	<div
 		class="cli-content p-3 font-mono text-sm overflow-y-auto"
-		style="color: var(--petalytics-text);"
+		style="color: var(--petalytics-text); max-height: 100%;"
 	>
 		<!-- Toggle create form -->
 		<div

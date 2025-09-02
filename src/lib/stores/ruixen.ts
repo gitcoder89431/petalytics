@@ -263,6 +263,20 @@ class Ruixen {
 				'Enrichment: rotate toys weekly to prevent boredom',
 			];
 		}
+		if ((pet.species || '').toLowerCase() === 'rabbit' || species.includes('rabbit')) {
+			return [
+				'Hay-first diet (80% hay) to support gut health; avoid sudden diet changes',
+				'Groom regularly; check for mats and monitor for GI stasis signs (no poop, lethargy)',
+				'Provide safe chew options and daily exercise time to prevent boredom',
+			];
+		}
+		if ((pet.species || '').toLowerCase() === 'hamster' || species.includes('hamster')) {
+			return [
+				'Nocturnal patterns are normal; avoid frequent daytime disturbances',
+				'Wheel size matters: ensure a flat-back run to prevent injuries',
+				'Spot-clean daily; full bedding changes weekly to reduce stress',
+			];
+		}
 		if ((pet.species || '').toLowerCase() === 'dog') {
 			return [
 				'Regular exercise matched to breed energy level prevents behavior issues',

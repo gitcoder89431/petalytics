@@ -364,14 +364,21 @@
 			onkeydown={(e) => handleActivate(e, () => togglePreference('aiInsights'))}
 		>
 			<span class="label" style="color: var(--petalytics-foam);">ai_insights</span>
-			<span class="value" style="color: var(--petalytics-text);"
-				>{preferences.aiInsights ? 'enabled' : 'disabled'}</span
-			>
+			<span class="value" style="color: var(--petalytics-text);">
+				{#if preferences.aiInsights}
+					{guardianHelpers.load()?.apiKeyValid ? 'cloud' : 'offline'}
+				{:else}
+					offline
+				{/if}
+			</span>
 			<span
 				class="ml-2"
 				style="color: {preferences.aiInsights
-					? 'var(--petalytics-pine)'
-					: 'var(--petalytics-subtle)'};">{preferences.aiInsights ? '●' : '○'}</span
+					? guardianHelpers.load()?.apiKeyValid
+						? 'var(--petalytics-iris)'
+						: 'var(--petalytics-subtle)'
+					: 'var(--petalytics-subtle)'};"
+				>{preferences.aiInsights && guardianHelpers.load()?.apiKeyValid ? '☁︎' : '○'}</span
 			>
 		</div>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Heart, FileText, Camera, Calendar } from 'lucide-svelte';
+	import { Heart, FileText, Camera, Calendar, PawPrint } from 'lucide-svelte';
 
 	interface Props {
 		// accept multiple icon key aliases for resilience
@@ -8,9 +8,19 @@
 		description: string;
 		actionText?: string;
 		onAction?: () => void;
+		secondaryActionText?: string;
+		onSecondaryAction?: () => void;
 	}
 
-	let { icon = 'heart', title, description, actionText, onAction }: Props = $props();
+	let {
+		icon = 'heart',
+		title,
+		description,
+		actionText,
+		onAction,
+		secondaryActionText,
+		onSecondaryAction,
+	}: Props = $props();
 
 	const icons = {
 		heart: Heart,
@@ -42,10 +52,20 @@
 		{description}
 	</p>
 
-	{#if actionText && onAction}
-		<button onclick={onAction} class="button flex items-center space-x-2 mx-auto">
-			<IconComponent size={16} />
-			<span>{actionText}</span>
-		</button>
+	{#if (actionText && onAction) || (secondaryActionText && onSecondaryAction)}
+		<div class="flex items-center justify-center gap-2">
+			{#if actionText && onAction}
+				<button onclick={onAction} class="button flex items-center space-x-2">
+					<IconComponent size={16} />
+					<span>{actionText}</span>
+				</button>
+			{/if}
+			{#if secondaryActionText && onSecondaryAction}
+				<button onclick={onSecondaryAction} class="button flex items-center space-x-2">
+					<PawPrint size={16} />
+					<span>{secondaryActionText}</span>
+				</button>
+			{/if}
+		</div>
 	{/if}
 </div>
