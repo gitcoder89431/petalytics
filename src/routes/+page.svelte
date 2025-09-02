@@ -50,7 +50,7 @@
 		</div>
 
 		<div class="mt-10 text-xs" style="color: var(--petalytics-subtle);">
-			Welcome screen · Petalytic
+			 :: Petalytic ::
 		</div>
 	</main>
 </div>
