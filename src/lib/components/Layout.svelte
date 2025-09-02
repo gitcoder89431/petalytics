@@ -1,12 +1,31 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { cssVariables } from '$lib/stores/theme.js';
+	import { cssVariables } from '$lib/stores/theme';
 	import GuardianPanel from './panels/GuardianPanel.svelte';
 	import PetPanel from './panels/PetPanel.svelte';
 	import Viewport from './panels/Viewport.svelte';
+	import { guardianStore } from '$lib/stores/guardian';
+	import { ruixen } from '$lib/stores/ruixen';
 
 	let layoutRef: HTMLDivElement;
 	let currentTime = '';
+
+	// Ruixen status stores
+	const ruixenQueue = ruixen.queueSize;
+	const ruixenDaily = ruixen.dailyUsage;
+
+	// Compute Ruixen state label and color
+	$: ruixenState = (() => {
+		const hasKey = Boolean($guardianStore?.apiKey) && Boolean($guardianStore?.apiKeyValid);
+		if (!hasKey) return { label: 'Needs API key', color: '--petalytics-love' };
+		const model = ($guardianStore as any)?.model || 'openai/gpt-oss-20b:free';
+		const isFree = /:free$/i.test(model);
+		const daily = Number($ruixenDaily || 0);
+		const q = Number($ruixenQueue || 0);
+		if (isFree && daily >= 45) return { label: 'Daily cap reached', color: '--petalytics-gold' };
+		if (q > 0) return { label: `Queued ${q}`, color: '--petalytics-gold' };
+		return { label: 'Ready', color: '--petalytics-pine' };
+	})();
 
 	function updateTime() {
 		const now = new Date();
@@ -70,13 +89,8 @@
 	>
 		<!-- Left: Workspaces / Logo -->
 		<div class="flex items-center space-x-4">
-			<div
-				class="px-2 h-5 flex items-center justify-center text-xs font-mono"
-				style="background: var(--petalytics-pine); color: var(--petalytics-bg);"
-			>
-				🐾
-			</div>
-			<span class="font-mono" style="color: var(--petalytics-foam);">petalytics@desktop</span>
+			<img src="/favicon.svg" alt="Petalytics" class="h-5 w-5" />
+			<span class="font-mono" style="color: var(--petalytics-foam);">petalytics@ruixenOS</span>
 		</div>
 
 		<!-- Center: Current Time -->
@@ -84,15 +98,11 @@
 			{currentTime}
 		</div>
 
-		<!-- Right: System Status -->
+		<!-- Right: System Status (Ruixen) -->
 		<div class="flex items-center space-x-3 text-xs font-mono">
-			<div class="flex items-center space-x-1">
-				<span style="color: var(--petalytics-foam);">●</span>
-				<span style="color: var(--petalytics-subtle);">journal</span>
-			</div>
-			<div class="flex items-center space-x-1">
-				<span style="color: var(--petalytics-gold);">●</span>
-				<span style="color: var(--petalytics-subtle);">ai</span>
+			<div class="flex items-center space-x-2">
+				<span style={`color: var(${ruixenState.color});`}>●</span>
+				<span style="color: var(--petalytics-subtle);">Ruixen: {ruixenState.label}</span>
 			</div>
 		</div>
 	</div>

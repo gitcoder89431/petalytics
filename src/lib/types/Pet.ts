@@ -1,4 +1,4 @@
-import type { JournalEntry } from './JournalEntry.js';
+import type { JournalEntry, AIAnalysisStored } from './JournalEntry.js';
 
 export interface Pet {
 	id: string;
@@ -42,7 +42,7 @@ export interface PetJournalEntry {
 	mood: PetMood;
 	activityLevel: ActivityLevel;
 	date: string;
-	aiAnalysis?: string;
+	aiAnalysis?: AIAnalysisStored | string;
 }
 
 export type PetMood = 'happy' | 'sad' | 'anxious' | 'playful' | 'tired' | 'sick';

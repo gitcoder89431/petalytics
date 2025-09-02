@@ -1,3 +1,14 @@
+export interface AIAnalysisStored {
+	summary: string;
+	moodTrend: 'improving' | 'stable' | 'concerning';
+	activityLevel: 'low' | 'normal' | 'high';
+	healthConcerns: string[];
+	recommendations: string[];
+	nextCheckupSuggestion?: string;
+	modelId?: string;
+	analyzedAt?: string;
+}
+
 export interface JournalEntry {
 	id: string;
 	petId: string;
@@ -8,11 +19,7 @@ export interface JournalEntry {
 	photos?: string[];
 	tags?: string[];
 	mood?: 'happy' | 'neutral' | 'sad' | 'excited' | 'tired' | 'anxious';
-	aiAnalysis?: {
-		insights: string[];
-		recommendations: string[];
-		confidence: number;
-	};
+	aiAnalysis?: AIAnalysisStored;
 	createdAt: Date;
 	updatedAt: Date;
 }

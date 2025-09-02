@@ -19,7 +19,7 @@
 		{#if !compact}
 			<div class="flex items-center space-x-2 mb-3">
 				<Brain size={16} style="color: var(--petalytics-accent);" />
-				<span class="font-medium text-sm" style="color: var(--petalytics-text);">AI Analysis</span>
+				<span class="font-medium text-sm" style="color: var(--petalytics-text);">AI Analysis • Ruixen</span>
 			</div>
 		{/if}
 

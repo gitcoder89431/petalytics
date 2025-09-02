@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { petStore, selectedPetStore, petHelpers, selectedPetHelpers } from '$lib/stores/pets';
-	import { aiAnalysisHelpers, isAnalyzing } from '$lib/stores/ai-analysis';
+	import { aiAnalysisHelpers, isAnalyzing, analysisStore } from '$lib/stores/ai-analysis';
+	import { ruixenHelpers } from '$lib/stores/ruixen';
 	import { PenTool, Brain, Calendar, Activity } from 'lucide-svelte';
 	import AIInsightsCard from '../ui/AIInsightsCard.svelte';
+	import RuixenInsights from '../ui/RuixenInsights.svelte';
 	import DataManager from '../ui/DataManager.svelte';
 	import EmptyState from '../ui/EmptyState.svelte';
 	import Skeleton from '../ui/Skeleton.svelte';
@@ -55,6 +57,10 @@
 		// Subscribe first so incoming loads propagate into state
 		petStore.subscribe((list) => {
 			pets = list || [];
+			// Hydrate AI cache from persisted entries on first load of list
+			if (pets && pets.length) {
+				aiAnalysisHelpers.hydrateFromPets(pets);
+			}
 			if (selectedPetId) {
 				selectedPet = pets.find((p) => p.id === selectedPetId) || null;
 			} else if (!selectedPetId && pets.length > 0) {
@@ -108,11 +114,22 @@
 			// Add entry to pet
 			petHelpers.addJournalEntry(selectedPet.id, entry);
 
-			// Analyze with AI (non-blocking)
+			// Analyze with Ruixen orchestrator (rate-limited with offline fallback)
 			try {
-				await aiAnalysisHelpers.analyzeEntry(selectedPet, entry);
+				const res = await ruixenHelpers.analyzeDaily(selectedPet, entry);
+				if (res) {
+					analysisStore.update((cache) => ({ ...cache, [entry.id]: res }));
+					// Persist onto the entry so it survives reloads and exports
+					const petNow = petHelpers.getPet(selectedPet.id);
+					if (petNow) {
+						const updatedEntries = (petNow.journalEntries || []).map((e) =>
+							e.id === entry.id ? { ...e, aiAnalysis: { ...res, modelId: (selectedPet as any)?.model || undefined, analyzedAt: new Date().toISOString() } } : e
+						);
+						petHelpers.update(petNow.id, { journalEntries: updatedEntries });
+					}
+				}
 			} catch (error) {
-				console.error('AI analysis failed:', error);
+				console.error('Ruixen analysis failed:', error);
 			}
 
 			// Reset form
@@ -251,6 +268,7 @@
 									{archivedPetsList().length} pets
 								</div>
 							</div>
+
 						</div>
 
 						{#if archivedPetsList().length === 0}
@@ -405,7 +423,7 @@
 									style="color: var(--petalytics-text);"
 								>
 									<Brain size={16} class="mr-2" style="color: var(--petalytics-accent);" />
-									AI Insights
+									AI Insights (Ruixen)
 								</h3>
 								{#if selectedPet.journalEntries.length === 0}
 									<p class="text-sm" style="color: var(--petalytics-subtle);">
@@ -417,6 +435,12 @@
 								{/if}
 							</div>
 						</div>
+
+						{#if selectedPet}
+							<div class="mt-4">
+								<RuixenInsights pet={selectedPet} />
+							</div>
+						{/if}
 					</div>
 				{:else if currentView === 'journal' && selectedPet}
 					<!-- Journal Entry Form -->

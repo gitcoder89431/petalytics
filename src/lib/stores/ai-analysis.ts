@@ -19,6 +19,30 @@ guardianStore.subscribe((guardian) => {
 });
 
 export const aiAnalysisHelpers = {
+	hydrateFromPets(pets: PetPanelData[]) {
+		try {
+			const map: Record<string, AnalysisResult> = {};
+			for (const pet of pets || []) {
+				for (const entry of pet.journalEntries || []) {
+					const raw: any = (entry as any).aiAnalysis;
+					if (!raw) continue;
+					if (typeof raw === 'string') {
+						try {
+							const parsed = JSON.parse(raw);
+							if (parsed && parsed.summary) map[entry.id] = parsed as AnalysisResult;
+						} catch {}
+					} else if (typeof raw === 'object' && raw.summary) {
+						map[entry.id] = raw as AnalysisResult;
+					}
+				}
+			}
+			if (Object.keys(map).length > 0) {
+				analysisStore.update((cache) => ({ ...map, ...cache }));
+			}
+		} catch (e) {
+			console.error('hydrateFromPets failed', e);
+		}
+	},
 	async analyzeEntry(pet: PetPanelData, entry: JournalEntry): Promise<AnalysisResult | null> {
 		if (!analyzer) {
 			throw new Error('API key not configured');

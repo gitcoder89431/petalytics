@@ -8,6 +8,7 @@
 ## ✨ Features
 
 - **🤖 AI-Powered Insights** - Get personalized care recommendations using OpenRouter API
+- Ruixen agent orchestrator with built-in rate limiting and offline heuristics
 - **📝 Smart Journaling** - Record daily activities, mood, and behavior patterns
 - **🎨 Beautiful Themes** - 4 gorgeous themes (Everforest, Gruvbox Dark, Tokyo Night, Nord)
 - **📊 Health Tracking** - Monitor wellness trends over time
